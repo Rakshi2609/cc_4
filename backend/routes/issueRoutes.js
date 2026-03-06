@@ -15,7 +15,12 @@ import {
   getMapIssues,
   getGovtClusters,
   getIssueCluster,
+  getIssueCluster,
   reclassifyIssue,
+  voteIssue,
+  getAssignableUsers,
+  assignIssue,
+  resolveIssue,
 } from '../controllers/issueController.js';
 
 const router = express.Router();
@@ -30,6 +35,10 @@ router.post('/', protect, upload.single('image'), createIssue);
 
 router.put('/:id/status', protect, restrictToGovt, updateIssueStatus);
 router.post('/:id/reclassify', protect, restrictToGovt, reclassifyIssue);
+router.post('/:id/vote', protect, voteIssue);
+router.post('/:id/assign', protect, restrictToGovt, assignIssue);
+router.post('/:id/resolve', protect, upload.single('image'), resolveIssue);
+router.get('/users/assignable', protect, restrictToGovt, getAssignableUsers);
 router.get('/:id/cluster', protect, getIssueCluster);
 router.get('/:id', protect, getIssueById);
 router.delete('/:id', protect, restrictToGovt, deleteIssue);

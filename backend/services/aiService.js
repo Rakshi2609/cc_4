@@ -3,9 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 
-const LLM_API_KEY  = process.env.LLM_API_KEY;
+const LLM_API_KEY = process.env.LLM_API_KEY;
 const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api.featherless.ai/v1';
-const LLM_MODEL    = process.env.LLM_MODEL    || 'google/gemma-3-27b-it';
+const LLM_MODEL = process.env.LLM_MODEL || 'google/gemma-3-27b-it';
 
 const VALID_CATEGORIES = ['Pothole', 'Streetlight', 'Garbage', 'Drainage', 'Water Leakage', 'Others'];
 
@@ -26,9 +26,9 @@ async function imageToBase64DataUrl(imageSource) {
   const buffer = fs.readFileSync(abs);
   const ext = path.extname(imageSource).replace('.', '').toLowerCase();
   const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg'
-             : ext === 'png' ? 'image/png'
-             : ext === 'webp' ? 'image/webp'
-             : 'image/jpeg';
+    : ext === 'png' ? 'image/png'
+      : ext === 'webp' ? 'image/webp'
+        : 'image/jpeg';
   return `data:${mime};base64,${buffer.toString('base64')}`;
 }
 
@@ -131,6 +131,83 @@ The citizen selected: "${userCategory || 'not specified'}"`;
       confidence: 0,
       aiNote: `AI classification failed: ${msg}`,
     };
+  }
+}
+
+/**
+ * Generates an AI-driven work plan (list of steps) for a specific civic issue based on its image.
+ */
+export async function generateWorkPlan(imageFilePath, category) {
+  if (!LLM_API_KEY) return ['Assess the site', 'Secure the area', 'Perform repairs', 'Document completion'];
+
+  let dataUrl;
+  try {
+    dataUrl = await imageToBase64DataUrl(imageFilePath);
+  } catch (err) {
+    return ['Unable to analyze image for custom plan. Follow standard operating procedures.'];
+  }
+
+  const prompt = `Based on this photo of a ${category} issue, provide a concise 4-step technical work plan to fix it. Return ONLY a JSON array of strings.`;
+
+  try {
+    const response = await axios.post(`${LLM_BASE_URL}/chat/completions`, {
+      model: LLM_MODEL,
+      messages: [
+        { role: 'system', content: 'You are a city infrastructure engineer. Respond ONLY with a valid JSON array of 4 strings.' },
+        {
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: dataUrl } },
+            { type: 'text', text: prompt },
+          ],
+        },
+      ],
+      max_tokens: 300,
+    }, {
+      headers: { Authorization: `Bearer ${LLM_API_KEY}`, 'Content-Type': 'application/json' },
+    });
+
+    const raw = response.data?.choices?.[0]?.message?.content || '[]';
+    return JSON.parse(raw.replace(/```json|```/gi, '').trim());
+  } catch (err) {
+    return ['Inspect damage', 'Procure materials', 'Execute repair', 'Final inspection'];
+  }
+}
+
+/**
+ * Verifies if a resolution photo actually shows the problem fixed compared to the original photo.
+ */
+export async function verifyResolution(originalImagePath, resolutionImagePath, category) {
+  if (!LLM_API_KEY) return { isResolved: true, note: 'AI verification skipped.' };
+
+  try {
+    const beforeUrl = await imageToBase64DataUrl(originalImagePath);
+    const afterUrl = await imageToBase64DataUrl(resolutionImagePath);
+
+    const prompt = `Compare these two images of a ${category} issue (Before and After). Determine if the issue is resolved. Respond in JSON: {"isResolved": boolean, "note": "one sentence explanation"}`;
+
+    const response = await axios.post(`${LLM_BASE_URL}/chat/completions`, {
+      model: LLM_MODEL,
+      messages: [
+        { role: 'system', content: 'You are a quality control inspector. Respond ONLY with JSON.' },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: beforeUrl } },
+            { type: 'image_url', image_url: { url: afterUrl } },
+          ],
+        },
+      ],
+      max_tokens: 200,
+    }, {
+      headers: { Authorization: `Bearer ${LLM_API_KEY}`, 'Content-Type': 'application/json' },
+    });
+
+    const raw = response.data?.choices?.[0]?.message?.content || '{}';
+    return JSON.parse(raw.replace(/```json|```/gi, '').trim());
+  } catch (err) {
+    return { isResolved: true, note: 'AI comparison failed, defaulting to trust.' };
   }
 }
 

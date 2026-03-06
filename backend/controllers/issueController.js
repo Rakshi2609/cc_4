@@ -18,7 +18,8 @@ export const getGovtClusters = async (req, res) => {
 };
 import Issue from '../models/Issue.js';
 import { notifyClusterMembers } from '../utils/socketHelpers.js';
-import { classifyIssueImage } from '../services/aiService.js';
+import { classifyIssueImage, generateWorkPlan, verifyResolution } from '../services/aiService.js';
+import User from '../models/User.js';
 import crypto from 'crypto';
 
 const DEPARTMENT_MAP = {
@@ -36,8 +37,8 @@ const CATEGORY_SEVERITY_BASE = {
   Garbage: 45, Streetlight: 40, Others: 35,
 };
 function computeSeverity({ category, aiVerified, clusterMembersCount = 0 }) {
-  const base        = CATEGORY_SEVERITY_BASE[category] || 35;
-  const aiBonus     = aiVerified ? 15 : 0;
+  const base = CATEGORY_SEVERITY_BASE[category] || 35;
+  const aiBonus = aiVerified ? 15 : 0;
   const clusterBonus = Math.min(20, clusterMembersCount * 5);
   return Math.min(100, Math.round(base + aiBonus + clusterBonus));
 }
@@ -67,9 +68,9 @@ export const createIssue = async (req, res) => {
     if (req.file) {
       try {
         const result = await classifyIssueImage(req.file.path, category);
-        aiVerified          = result.aiVerified;
-        aiDetectedCategory  = result.detectedCategory;
-        aiNote              = result.aiNote;
+        aiVerified = result.aiVerified;
+        aiDetectedCategory = result.detectedCategory;
+        aiNote = result.aiNote;
         console.log(`[AI] category=${aiDetectedCategory} verified=${aiVerified} confidence=${result.confidence}% note="${aiNote}"`);
       } catch (aiErr) {
         console.warn('[AI] Classification error (non-fatal):', aiErr.message);
@@ -221,8 +222,8 @@ export const getAllIssues = async (req, res) => {
 
     const now = Date.now();
     const scored = allForScoring.map((issue) => {
-      const daysPending  = Math.max(1, (now - new Date(issue.createdAt).getTime()) / 86400000);
-      const clusterSize  = (issue.clusterMembers?.length || 0) + 1;
+      const daysPending = Math.max(1, (now - new Date(issue.createdAt).getTime()) / 86400000);
+      const clusterSize = (issue.clusterMembers?.length || 0) + 1;
       const severityBase = issue.severityScore || 0;
       // Priority = (severity * cluster size) / days pending
       const computedPriority = (severityBase * clusterSize) / daysPending;
@@ -474,10 +475,10 @@ export const reclassifyIssue = async (req, res) => {
     const imagePath = issue.imageUrl;
     const result = await classifyIssueImage(imagePath, issue.category);
 
-    issue.aiVerified         = result.aiVerified;
-    issue.aiNote             = result.aiNote;
-    issue.category           = result.detectedCategory;
-    issue.severityScore      = computeSeverity({
+    issue.aiVerified = result.aiVerified;
+    issue.aiNote = result.aiNote;
+    issue.category = result.detectedCategory;
+    issue.severityScore = computeSeverity({
       category: result.detectedCategory,
       aiVerified: result.aiVerified,
       clusterMembersCount: issue.clusterMembers?.length || 0,
@@ -486,6 +487,90 @@ export const reclassifyIssue = async (req, res) => {
 
     console.log(`[AI reclassify] issue=${issue._id} category=${issue.category} verified=${issue.aiVerified}`);
     res.json({ issue, aiResult: result });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/issues/:id/vote
+export const voteIssue = async (req, res) => {
+  try {
+    const { type } = req.body; // 'up' or 'down'
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+
+    const userId = req.user.id;
+    issue.upvotes = issue.upvotes.filter(id => id.toString() !== userId);
+    issue.downvotes = issue.downvotes.filter(id => id.toString() !== userId);
+
+    if (type === 'up') issue.upvotes.push(userId);
+    if (type === 'down') issue.downvotes.push(userId);
+
+    await issue.save();
+    res.json({ upvotes: issue.upvotes.length, downvotes: issue.downvotes.length });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/users/assignable (govt only)
+export const getAssignableUsers = async (req, res) => {
+  try {
+    const users = await User.find({ role: 'citizen' }).select('name email');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/issues/:id/assign (govt only)
+export const assignIssue = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+
+    issue.assignedTo = userId;
+    issue.status = 'in-progress';
+
+    // Generate AI Work Plan
+    if (issue.imageUrl) {
+      issue.aiWorkPlan = await generateWorkPlan(issue.imageUrl, issue.category);
+    }
+
+    await issue.save();
+    res.json(issue);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/issues/:id/resolve (worker submits completion)
+export const resolveIssue = async (req, res) => {
+  try {
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+
+    if (issue.assignedTo?.toString() !== req.user.id && req.user.role !== 'government') {
+      return res.status(403).json({ message: 'Not authorized to resolve this issue.' });
+    }
+
+    const resolutionPhotoUrl = req.file ? req.file.path : '';
+    issue.resolutionPhotoUrl = resolutionPhotoUrl;
+
+    // AI Verify Resolution
+    if (issue.imageUrl && resolutionPhotoUrl) {
+      const result = await verifyResolution(issue.imageUrl, resolutionPhotoUrl, issue.category);
+      if (result.isResolved) {
+        issue.status = 'resolved';
+      }
+      issue.governmentRemarks = result.note;
+    } else {
+      issue.status = 'resolved';
+    }
+
+    await issue.save();
+    res.json(issue);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

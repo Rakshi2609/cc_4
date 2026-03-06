@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useState } from 'react';
-import { Bell, ChevronDown, LogOut, Shield, User, LayoutDashboard, Plus, Radio, AlertTriangle, Megaphone, BarChart3, Wallet, Activity, Globe } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, Shield, User, LayoutDashboard, Plus, Radio, AlertTriangle, Megaphone, BarChart3, Wallet, Activity, Globe, Briefcase } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -101,6 +101,13 @@ export default function Navbar() {
               >
                 <Activity size={13} />
                 Manage Wards
+              </Link>
+              <Link
+                to="/gov-work"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors"
+              >
+                <Briefcase size={13} />
+                Work Force
               </Link>
               <Link
                 to="/gov-live"

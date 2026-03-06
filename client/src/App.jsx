@@ -17,6 +17,7 @@ import GovAnalytics from './pages/GovAnalytics'
 import GovBudget from './pages/GovBudget'
 import WardManagement from './pages/WardManagement'
 import LiveDashboard from './pages/LiveDashboard'
+import GovWorkAssignment from './pages/GovWorkAssignment'
 import './App.css'
 
 // Route guard helpers
@@ -60,6 +61,7 @@ function App() {
         <Route path="/gov-budget" element={<RequireAuth role="government"><GovBudget /></RequireAuth>} />
         <Route path="/gov-wards" element={<RequireAuth role="government"><WardManagement /></RequireAuth>} />
         <Route path="/gov-live" element={<RequireAuth role="government"><LiveDashboard /></RequireAuth>} />
+        <Route path="/gov-work" element={<RequireAuth role="government"><GovWorkAssignment /></RequireAuth>} />
 
         {/* Shared */}
         <Route path="/issues/:id" element={<RequireAuth><IssueDetail /></RequireAuth>} />

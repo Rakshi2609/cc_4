@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Flame, Layers } from 'lucide-react';
+import { ShieldCheck, Flame, Layers, ThumbsUp, ThumbsDown } from 'lucide-react';
+import api from '../api/axios';
 import 'leaflet/dist/leaflet.css';
 
 const STATUS_COLOR = {
@@ -53,8 +54,8 @@ export default function IssueMap({ issues = [], title = 'Issue Heatmap', readOnl
           <button
             onClick={() => setHeatmapOn((v) => !v)}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-sm mono text-[10px] font-semibold border transition tracking-wide ${heatmapOn
-                ? 'bg-amber-50 border-amber-300 text-amber-700'
-                : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700'
+              ? 'bg-amber-50 border-amber-300 text-amber-700'
+              : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700'
               }`}
           >
             <Layers size={11} />
@@ -143,26 +144,52 @@ export default function IssueMap({ issues = [], title = 'Issue Heatmap', readOnl
                     {isClusterMember && (
                       <p style={{ color: '#f59e0b', fontSize: 10, fontFamily: 'monospace', letterSpacing: 2, marginBottom: 6, fontWeight: 700 }}>CLUSTER MEMBER</p>
                     )}
+                    {issue.imageUrl && (
+                      <img src={issue.imageUrl} alt="issue" className="w-full h-24 object-cover my-2 rounded-sm border border-gray-100" />
+                    )}
                     <p style={{ color: '#111827', fontSize: 12, fontWeight: 600, marginBottom: 4, lineHeight: 1.3 }}>
                       {issue.title}
                       {issue.aiVerified && <span style={{ color: '#198038', marginLeft: 4, fontSize: 10, fontFamily: 'monospace' }}>AI VFD</span>}
                     </p>
                     <p style={{ color: '#6b7280', fontSize: 10, fontFamily: 'monospace', letterSpacing: 1, marginBottom: 2 }}>{issue.category?.toUpperCase()}</p>
-                    <p style={{ color: STATUS_COLOR[issue.status] || '#6b7280', fontSize: 10, fontFamily: 'monospace', letterSpacing: 1, marginBottom: 2, fontWeight: 600 }}>{issue.status?.toUpperCase()}</p>
-                    {issue.citizen?.name && (
-                      <p style={{ color: '#6b7280', fontSize: 10 }}>{issue.citizen.name}</p>
-                    )}
-                    {issue.upvotes > 0 && (
-                      <p style={{ color: '#6b7280', fontSize: 10, fontFamily: 'monospace' }}>{issue.upvotes} UPVOTES</p>
-                    )}
-                    {!readOnly && (
-                      <button
-                        onClick={() => navigate(`/issues/${issue._id}`)}
-                        style={{ marginTop: 6, color: '#0f62fe', fontSize: 10, fontFamily: 'monospace', letterSpacing: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}
-                      >
-                        VIEW DETAIL →
-                      </button>
-                    )}
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await api.post(`/issues/${issue._id}/vote`, { type: 'up' });
+                              // Simple feedback: update UI would need parent refetch, 
+                              // for now we just show alert or wait for refresh
+                            } catch (err) { console.error(err); }
+                          }}
+                          className="flex items-center gap-1 text-gray-500 hover:text-green-600 transition-colors"
+                        >
+                          <ThumbsUp size={12} />
+                          <span className="mono text-[10px]">{issue.upvotes?.length || 0}</span>
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await api.post(`/issues/${issue._id}/vote`, { type: 'down' });
+                            } catch (err) { console.error(err); }
+                          }}
+                          className="flex items-center gap-1 text-gray-500 hover:text-red-600 transition-colors"
+                        >
+                          <ThumbsDown size={12} />
+                          <span className="mono text-[10px]">{issue.downvotes?.length || 0}</span>
+                        </button>
+                      </div>
+                      {!readOnly && (
+                        <button
+                          onClick={() => navigate(`/issues/${issue._id}`)}
+                          style={{ color: '#0f62fe', fontSize: 10, fontFamily: 'monospace', letterSpacing: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600 }}
+                        >
+                          DETAIL →
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </Popup>
               </CircleMarker>

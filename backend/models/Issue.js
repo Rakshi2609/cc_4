@@ -103,6 +103,26 @@ const issueSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // ── Voting & Assignment ──────────────────────────────────────────
+    upvotes: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'User',
+      default: [],
+    },
+    downvotes: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'User',
+      default: [],
+    },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    aiWorkPlan: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );

@@ -14,6 +14,7 @@ import {
   ArrowLeft, Trash2, RefreshCw,
   Users, AlertTriangle, CheckCircle2, Clock,
   ChevronLeft, ChevronRight, ImageOff, ShieldCheck, ShieldAlert, Activity,
+  ThumbsUp, ThumbsDown, Briefcase
 } from 'lucide-react';
 
 const STATUSES = ['pending', 'in-progress', 'resolved'];
@@ -38,7 +39,7 @@ export default function IssueDetail() {
   const [govForm, setGovForm] = useState({ status: '', remark: '', assignedDepartment: '' });
   const [updating, setUpdating] = useState(false);
   const [reclassifying, setReclassifying] = useState(false);
-  const [toast, setToast] = useState({ msg: '', ok: true });  const [cluster, setCluster] = useState(null);
+  const [toast, setToast] = useState({ msg: '', ok: true }); const [cluster, setCluster] = useState(null);
   const [clusterSlideIdx, setClusterSlideIdx] = useState(0);
   const { socket } = useContext(SocketContext);
   const confettiFired = useRef(false);
@@ -126,7 +127,7 @@ export default function IssueDetail() {
   const severity = issue?.severityScore ?? 0;
   const severityColor = severity >= 70 ? 'text-red-600 bg-red-50 border-red-200'
     : severity >= 50 ? 'text-amber-700 bg-amber-50 border-amber-200'
-    : 'text-green-700 bg-green-50 border-green-200';
+      : 'text-green-700 bg-green-50 border-green-200';
   const severityBar = severity >= 70 ? 'bg-red-500' : severity >= 50 ? 'bg-amber-400' : 'bg-green-500';
   const severityLabel = severity >= 70 ? 'HIGH' : severity >= 50 ? 'MEDIUM' : 'LOW';
 
@@ -268,9 +269,8 @@ export default function IssueDetail() {
                           <button
                             key={i}
                             onClick={() => setClusterSlideIdx(i)}
-                            className={`w-2 h-2 rounded-full transition-colors ${
-                              i === clusterSlideIdx ? 'bg-amber-500' : 'bg-amber-200 hover:bg-amber-400'
-                            }`}
+                            className={`w-2 h-2 rounded-full transition-colors ${i === clusterSlideIdx ? 'bg-amber-500' : 'bg-amber-200 hover:bg-amber-400'
+                              }`}
                           />
                         ))}
                       </div>
@@ -291,11 +291,10 @@ export default function IssueDetail() {
                   <div
                     key={r.issueId}
                     onClick={() => setClusterSlideIdx(i)}
-                    className={`flex items-center justify-between border rounded-sm px-3 py-2 cursor-pointer transition-colors ${
-                      i === clusterSlideIdx
+                    className={`flex items-center justify-between border rounded-sm px-3 py-2 cursor-pointer transition-colors ${i === clusterSlideIdx
                         ? 'bg-amber-100 border-amber-300'
                         : 'bg-white border-amber-100 hover:bg-amber-50'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="mono text-[10px] text-gray-400 w-5">#{String(i + 1).padStart(2, '0')}</span>
@@ -380,17 +379,15 @@ export default function IssueDetail() {
 
               {/* AI Intelligence panel (government only) */}
               {user?.role === 'government' && (
-                <div className={`mt-4 p-3 rounded-sm border ${
-                  issue.aiVerified ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
-                }`}>
+                <div className={`mt-4 p-3 rounded-sm border ${issue.aiVerified ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                  }`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       {issue.aiVerified
                         ? <ShieldCheck size={12} className="text-green-600" />
                         : <ShieldAlert size={12} className="text-gray-400" />}
-                      <span className={`mono text-[9px] tracking-widest font-semibold ${
-                        issue.aiVerified ? 'text-green-700' : 'text-gray-400'
-                      }`}>
+                      <span className={`mono text-[9px] tracking-widest font-semibold ${issue.aiVerified ? 'text-green-700' : 'text-gray-400'
+                        }`}>
                         {issue.aiVerified ? 'AI VERIFIED · AUTHENTIC CIVIC ISSUE' : 'AI UNVERIFIED'}
                       </span>
                     </div>
@@ -421,6 +418,59 @@ export default function IssueDetail() {
                   )}
                 </div>
               )}
+
+              {/* AI Work Plan (Featherless AI) */}
+              {issue.aiWorkPlan && issue.aiWorkPlan.length > 0 && (
+                <div className="mt-5 bg-indigo-50 border border-indigo-100 rounded-sm p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Briefcase size={14} className="text-indigo-600" />
+                    <span className="mono text-[10px] text-indigo-700 tracking-widest font-black uppercase">AI Maintenance Strategy</span>
+                  </div>
+                  <div className="space-y-2">
+                    {issue.aiWorkPlan.map((step, idx) => (
+                      <div key={idx} className="flex gap-3">
+                        <span className="mono text-[10px] font-black text-indigo-400">{idx + 1}</span>
+                        <p className="text-xs text-indigo-900 font-medium">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Voting Tool */}
+              <div className="mt-6 pt-5 border-t border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await api.post(`/issues/${id}/vote`, { type: 'up' });
+                        setIssue(prev => ({ ...prev, upvotes: Array(res.data.upvotes).fill(0), downvotes: Array(res.data.downvotes).fill(0) }));
+                      } catch (err) { console.error(err); }
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 hover:border-green-500 hover:text-green-600 transition-all text-gray-500"
+                  >
+                    <ThumbsUp size={14} />
+                    <span className="mono text-xs font-bold">{issue.upvotes?.length || 0}</span>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await api.post(`/issues/${id}/vote`, { type: 'down' });
+                        setIssue(prev => ({ ...prev, upvotes: Array(res.data.upvotes).fill(0), downvotes: Array(res.data.downvotes).fill(0) }));
+                      } catch (err) { console.error(err); }
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 hover:border-red-500 hover:text-red-600 transition-all text-gray-500"
+                  >
+                    <ThumbsDown size={14} />
+                    <span className="mono text-xs font-bold">{issue.downvotes?.length || 0}</span>
+                  </button>
+                </div>
+                {issue.assignedTo && (
+                  <div className="flex items-center gap-2 text-indigo-600 mono text-[10px] font-black uppercase tracking-widest">
+                    <Clock size={12} className="animate-spin-slow" /> WORKER DISPATCHED
+                  </div>
+                )}
+              </div>
 
               {issue.governmentRemarks && (
                 <div className="mt-4 p-3 rounded-sm bg-green-50 border border-green-200">
