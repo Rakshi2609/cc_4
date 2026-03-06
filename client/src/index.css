@@ -1,0 +1,303 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+:root {
+    /* ── Light-mode design tokens ── */
+    --bg: #f3f4f6;
+    /* app shell background */
+    --surface: #ffffff;
+    /* card / panel surface */
+    --sidebar: #f9fafb;
+    /* sidebar background */
+    --border: #e5e7eb;
+    /* 1px solid dividers */
+    --border-hi: #d1d5db;
+    /* stronger dividers */
+
+    /* Primary action */
+    --blue: #0f62fe;
+    --blue-hover: #0353d9;
+
+    /* Status */
+    --red: #da1e28;
+    --green: #198038;
+    --amber: #f59e0b;
+
+    /* Text */
+    --text: #111827;
+    /* primary text */
+    --muted: #6b7280;
+    /* secondary text */
+    --muted-hi: #374151;
+    /* slightly stronger muted */
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* ── Monospace utility ────────────────────────────────────── */
+.mono {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+/* ── Flat surface card ────────────────────────────────────── */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+/* ── AI Scan state — linear progress bar ─────────────────── */
+@keyframes scanProgress {
+    0% {
+        width: 0%;
+    }
+
+    80% {
+        width: 90%;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+.scan-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--blue);
+    animation: scanProgress 2s ease-in-out infinite alternate;
+    z-index: 10;
+}
+
+/* ── Fade in animation ────────────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeInUp 0.12s ease-out both;
+}
+
+/* ── Grid pattern background ─────────────────────────────── */
+.bg-grid-pattern {
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* ── Scan bar animation for AI analysis ──────────────────── */
+@keyframes scanProgress {
+    0% {
+        width: 0%;
+    }
+
+    80% {
+        width: 90%;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+.scan-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--blue);
+    animation: scanProgress 2s ease-in-out infinite alternate;
+    z-index: 10;
+}
+
+/* ── Skeleton shimmer ─────────────────────────────────────── */
+@keyframes shimmer {
+    0% {
+        background-position: -600px 0;
+    }
+
+    100% {
+        background-position: 600px 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e9eaec 50%, #f3f4f6 75%);
+    background-size: 1200px 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+/* ── Priority urgent blink ────────────────────────────────── */
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.blink {
+    animation: blink 1.6s ease-in-out infinite;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-hi);
+    border-radius: 2px;
+}
+
+/* ── Global input light reset ─────────────────────────────── */
+input,
+select,
+textarea {
+    background: #ffffff !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border-hi) !important;
+    border-radius: 4px;
+    transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none !important;
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 2px rgba(15, 98, 254, 0.15) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #9ca3af !important;
+}
+
+option {
+    background: #ffffff;
+    color: var(--text);
+}
+
+/* ── Responsive container utility ──────────────────────── */
+.container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+    .container {
+        max-width: 640px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 768px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        max-width: 1024px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .container {
+        max-width: 1280px;
+    }
+}
+
+@media (min-width: 1536px) {
+    .container {
+        max-width: 1536px;
+    }
+}
+
+/* ── Improved map container for better loading ─────────── */
+.leaflet-container {
+    background: #e8edf2 !important;
+    font-family: 'Inter', sans-serif !important;
+    border-radius: 0.5rem;
+}
+
+.leaflet-popup-content-wrapper {
+    background: #ffffff !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 4px !important;
+    color: var(--text) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10) !important;
+    padding: 0 !important;
+}
+
+.leaflet-popup-content {
+    margin: 0 !important;
+}
+
+.leaflet-popup-tip {
+    background: #ffffff !important;
+}
+
+.leaflet-popup-close-button {
+    color: var(--muted) !important;
+    font-size: 14px !important;
+    top: 6px !important;
+    right: 6px !important;
+}
+
+.leaflet-control-attribution {
+    display: none !important;
+}
+
+.leaflet-control-zoom a {
+    background: #ffffff !important;
+    color: var(--muted-hi) !important;
+    border-color: var(--border) !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background: #f9fafb !important;
+    color: var(--text) !important;
+}

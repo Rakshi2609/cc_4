@@ -1,0 +1,492 @@
+// PUT /api/issues/:id/status — government updates status (cascade to cluster)
+
+
+// GET /api/issues/clusters — all cluster primaries for government
+export const getGovtClusters = async (req, res) => {
+  try {
+    const clusters = await Issue.find({ $or: [{ isCluster: true }, { clusterMembers: { $exists: true, $not: { $size: 0 } } }] })
+      .sort({ priorityScore: -1, clusterMembers: -1 })
+      .populate({
+        path: 'clusterMembers',
+        select: 'citizen status location',
+        populate: { path: 'citizen', select: 'name email phone' },
+      });
+    res.json({ clusters });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+import Issue from '../models/Issue.js';
+import { notifyClusterMembers } from '../utils/socketHelpers.js';
+import { classifyIssueImage } from '../services/aiService.js';
+import crypto from 'crypto';
+
+const DEPARTMENT_MAP = {
+  Pothole: 'Roads & Infrastructure',
+  Streetlight: 'Electricity Department',
+  Garbage: 'Solid Waste Management',
+  Drainage: 'Water & Sanitation',
+  'Water Leakage': 'Water & Sanitation',
+  Others: 'General Administration',
+};
+
+// ── Severity score helper ──────────────────────────────────────────────────
+const CATEGORY_SEVERITY_BASE = {
+  'Water Leakage': 70, Drainage: 60, Pothole: 55,
+  Garbage: 45, Streetlight: 40, Others: 35,
+};
+function computeSeverity({ category, aiVerified, clusterMembersCount = 0 }) {
+  const base        = CATEGORY_SEVERITY_BASE[category] || 35;
+  const aiBonus     = aiVerified ? 15 : 0;
+  const clusterBonus = Math.min(20, clusterMembersCount * 5);
+  return Math.min(100, Math.round(base + aiBonus + clusterBonus));
+}
+
+// ──────────────── CITIZEN ────────────────
+
+// POST /api/issues
+export const createIssue = async (req, res) => {
+  try {
+    // Extract data from request — frontend sends latitude/longitude as separate fields
+    const { title, description, category, address = '' } = req.body;
+    const lat = parseFloat(req.body.latitude);
+    const lng = parseFloat(req.body.longitude);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      return res.status(400).json({ message: 'Valid latitude and longitude are required.' });
+    }
+
+    // Cloudinary URL returned by multer-storage-cloudinary (req.file.path is the full HTTPS URL)
+    const imageUrl = req.file ? req.file.path : ''
+
+    // ── AI Vision Classification ──────────────────────────────────────────────
+    let aiVerified = false;
+    let aiDetectedCategory = category;   // fallback to what citizen chose
+    let aiNote = '';
+
+    if (req.file) {
+      try {
+        const result = await classifyIssueImage(req.file.path, category);
+        aiVerified          = result.aiVerified;
+        aiDetectedCategory  = result.detectedCategory;
+        aiNote              = result.aiNote;
+        console.log(`[AI] category=${aiDetectedCategory} verified=${aiVerified} confidence=${result.confidence}% note="${aiNote}"`);
+      } catch (aiErr) {
+        console.warn('[AI] Classification error (non-fatal):', aiErr.message);
+      }
+    }
+
+    // ── Severity score ────────────────────────────────────────────────────
+    const severityScore = computeSeverity({ category: aiDetectedCategory, aiVerified });
+
+    // Prepare new issue data
+    const newIssueData = {
+      title,
+      description,
+      category: aiDetectedCategory,
+      imageUrl,
+      photoUrl: imageUrl,
+      resolutionPhotoUrl: '',
+      address,
+      location: {
+        type: 'Point',
+        coordinates: [lng, lat],
+      },
+      citizen: req.user.id,
+      status: 'pending',
+      priorityScore: 0,
+      severityScore,
+      clusterId: null,
+      clusterMembers: [],
+      isCluster: false,
+      aiVerified,
+      aiNote,
+    };
+
+    // Find a nearby unresolved issue of the same category within 100m
+    const nearby = await Issue.findOne({
+      category,
+      status: { $ne: 'resolved' },
+      location: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [lng, lat] },
+          $maxDistance: 100,
+        },
+      },
+    });
+
+    let wasClustered = false;
+    let clusterCount = 1;
+    let createdIssue;
+
+    if (nearby) {
+      // Scenario A: Join an existing cluster primary
+      if (nearby.isCluster || nearby.clusterMembers?.length > 0) {
+        newIssueData.clusterId = nearby._id;
+        createdIssue = await Issue.create(newIssueData);
+        // Add new issue to clusterMembers and increment priorityScore
+        nearby.clusterMembers.push(createdIssue._id);
+        nearby.priorityScore = (nearby.priorityScore || 0) + 1;
+        await nearby.save();
+        wasClustered = true;
+        clusterCount = (nearby.clusterMembers?.length || 0) + 1;
+      }
+      // Scenario B: Upgrade a standalone to cluster primary
+      else {
+        nearby.isCluster = true;
+        nearby.clusterMembers = [];
+        newIssueData.clusterId = nearby._id;
+        createdIssue = await Issue.create(newIssueData);
+        nearby.clusterMembers.push(createdIssue._id);
+        nearby.priorityScore = (nearby.priorityScore || 0) + 1;
+        await nearby.save();
+        wasClustered = true;
+        clusterCount = 2; // The upgraded primary + this new one
+      }
+    } else {
+      // Scenario C: Standalone
+      createdIssue = await Issue.create(newIssueData);
+      wasClustered = false;
+      clusterCount = 1;
+    }
+
+    // Optionally emit socket event
+    req.io?.emit('new_issue', createdIssue);
+
+    // Populate citizen info for response
+    const populated = await createdIssue.populate('citizen', 'name email');
+    res.status(201).json({
+      issue: populated,
+      meta: {
+        wasClustered,
+        clusterCount,
+        aiDetectedCategory,
+        aiVerified,
+        aiNote,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/issues/my  — citizen's own issues
+export const getMyIssues = async (req, res) => {
+  try {
+    const { status, category, page = 1, limit = 10 } = req.query;
+    const filter = { citizen: req.user.id };
+    if (status) filter.status = status;
+    if (category) filter.category = category;
+
+    const issues = await Issue.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .populate('citizen', 'name email');
+
+    const total = await Issue.countDocuments(filter);
+    res.json({ issues, total, page: Number(page), pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/issues/:id/upvote — REMOVED (upvote feature deprecated)
+
+// ──────────────── GOVERNMENT ────────────────
+
+// GET /api/issues  — all issues (with filters)
+export const getAllIssues = async (req, res) => {
+  try {
+    const { status, category, department, page = 1, limit = 20, lat, lng, radius } = req.query;
+
+    let filter = {};
+    if (status) filter.status = status;
+    if (category) filter.category = category;
+    if (department) filter.assignedDepartment = department;
+
+    // Geo filter
+    if (lat && lng && radius) {
+      filter.location = {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
+          $maxDistance: parseFloat(radius) * 1000,
+        },
+      };
+    }
+
+    const allForScoring = await Issue.find(filter)
+      .populate('citizen', 'name email phone')
+      .lean();
+
+    const now = Date.now();
+    const scored = allForScoring.map((issue) => {
+      const daysPending  = Math.max(1, (now - new Date(issue.createdAt).getTime()) / 86400000);
+      const clusterSize  = (issue.clusterMembers?.length || 0) + 1;
+      const severityBase = issue.severityScore || 0;
+      // Priority = (severity * cluster size) / days pending
+      const computedPriority = (severityBase * clusterSize) / daysPending;
+      return { ...issue, computedPriority };
+    });
+
+    scored.sort((a, b) => b.computedPriority - a.computedPriority);
+
+    const total = scored.length;
+    const issues = scored.slice((page - 1) * limit, page * limit);
+
+    res.json({ issues, total, page: Number(page), pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/issues/map  — lightweight, all issues, accessible to any logged-in user
+export const getMapIssues = async (req, res) => {
+  try {
+    const issues = await Issue.find({})
+      .select('title category status location severityScore aiVerified createdAt citizen')
+      .populate('citizen', 'name')
+      .lean();
+    res.json(issues);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/issues/stats
+export const getStats = async (req, res) => {
+  try {
+    const [total, pending, inProgress, resolved] = await Promise.all([
+      Issue.countDocuments(),
+      Issue.countDocuments({ status: 'pending' }),
+      Issue.countDocuments({ status: 'in-progress' }),
+      Issue.countDocuments({ status: 'resolved' }),
+    ]);
+
+    const categoryStats = await Issue.aggregate([
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    res.json({ total, pending, inProgress, resolved, categoryStats });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/issues/:id
+export const getIssueById = async (req, res) => {
+  try {
+    const issue = await Issue.findById(req.params.id).populate('citizen', 'name email phone');
+    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+    res.json(issue);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// PUT /api/issues/:id/status  — government updates status + remark
+export const updateIssueStatus = async (req, res) => {
+  try {
+    const { status, remark, assignedDepartment } = req.body;
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+
+    issue.status = status || issue.status;
+    if (remark) issue.governmentRemarks = remark;
+    if (assignedDepartment) issue.assignedDepartment = assignedDepartment;
+
+    const auditHash = crypto
+      .createHash('sha256')
+      .update(`${issue._id}:${issue.status}:${remark || ''}:${Date.now()}`)
+      .digest('hex');
+
+    issue.statusHistory.push({
+      status: issue.status,
+      remark: remark || '',
+      updatedBy: req.user.id,
+      auditHash,
+    });
+
+    await issue.save();
+
+    // ── Cascade status to all cluster members ────────────────────
+    if (issue.clusterMembers.length > 0) {
+      const historyEntry = {
+        status: issue.status,
+        remark: remark
+          ? `[Cluster update] ${remark}`
+          : `Status updated via cluster primary`,
+        updatedBy: req.user.id,
+        updatedAt: new Date(),
+      };
+
+      const memberIssues = await Issue.find({ _id: { $in: issue.clusterMembers } });
+
+      for (const member of memberIssues) {
+        member.status = issue.status;
+        if (remark) member.governmentRemarks = remark;
+        if (assignedDepartment) member.assignedDepartment = assignedDepartment;
+        member.statusHistory.push(historyEntry);
+        await member.save();
+
+        // Notify each member's citizen via socket
+        req.io?.to(member.citizen.toString()).emit('issue_updated', {
+          issueId: member._id,
+          status: member.status,
+          remark: historyEntry.remark,
+          clusterUpdate: true,
+        });
+      }
+    }
+    // ─────────────────────────────────────────────────────────────
+
+    // Emit socket event to primary issue's citizen
+    req.io?.to(issue.citizen.toString()).emit('issue_updated', {
+      issueId: issue._id,
+      status: issue.status,
+      remark: remark || '',
+    });
+
+    const populated = await issue.populate('citizen', 'name email phone');
+    res.json(populated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/issues/clusters  — all cluster primaries (government)
+export const getClusters = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, category } = req.query;
+    const filter = { $or: [{ isCluster: true }, { clusterMembers: { $exists: true, $not: { $size: 0 } } }] };
+    if (status) filter.status = status;
+    if (category) filter.category = category;
+
+    const clusters = await Issue.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .populate('citizen', 'name email phone')
+      .populate({
+        path: 'clusterMembers',
+        populate: { path: 'citizen', select: 'name email phone' },
+      });
+
+    const total = await Issue.countDocuments(filter);
+    res.json({ clusters, total, page: Number(page), pages: Math.ceil(total / limit) });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/issues/:id/cluster  — cluster details for a specific issue
+// Citizens see anonymised count; government sees full details
+export const getIssueCluster = async (req, res) => {
+  try {
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+
+    // Resolve the cluster primary
+    let primary = null;
+    if (!issue.clusterId && issue.clusterMembers.length > 0) {
+      // This IS the primary
+      primary = await Issue.findById(issue._id)
+        .populate('citizen', 'name email phone')
+        .populate({
+          path: 'clusterMembers',
+          populate: { path: 'citizen', select: 'name email phone' },
+        });
+    } else if (issue.clusterId) {
+      // This is a member — fetch primary
+      primary = await Issue.findById(issue.clusterId)
+        .populate('citizen', 'name email phone')
+        .populate({
+          path: 'clusterMembers',
+          populate: { path: 'citizen', select: 'name email phone' },
+        });
+    }
+
+    if (!primary) {
+      return res.json({ isInCluster: false });
+    }
+
+    const allReporters = [primary, ...primary.clusterMembers];
+    const totalReports = allReporters.length;
+
+    const isGovt = req.user.role === 'government';
+
+    // Citizens only see count (anonymous); government sees full list
+    const reporters = isGovt
+      ? allReporters.map((i) => ({
+        issueId: i._id,
+        name: i.citizen?.name,
+        email: i.citizen?.email,
+        phone: i.citizen?.phone,
+        reportedAt: i.createdAt,
+        title: i.title,
+        description: i.description,
+        imageUrl: i.imageUrl,
+        status: i.status,
+        location: i.location,
+        aiVerified: i.aiVerified,
+        aiNote: i.aiNote,
+        severityScore: i.severityScore,
+      }))
+      : null;
+
+    res.json({
+      isInCluster: true,
+      primaryIssueId: primary._id,
+      totalReports,
+      category: primary.category,
+      location: primary.location,
+      status: primary.status,
+      reporters, // null for citizens (privacy)
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// DELETE /api/issues/:id  — government only
+export const deleteIssue = async (req, res) => {
+  try {
+    const issue = await Issue.findByIdAndDelete(req.params.id);
+    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+    res.json({ message: 'Issue deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST /api/issues/:id/reclassify — government only — re-run AI on existing issue
+export const reclassifyIssue = async (req, res) => {
+  try {
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) return res.status(404).json({ message: 'Issue not found' });
+
+    if (!issue.imageUrl) {
+      return res.status(400).json({ message: 'No image attached to this issue.' });
+    }
+
+    // Pass the Cloudinary URL directly to classifyIssueImage
+    const imagePath = issue.imageUrl;
+    const result = await classifyIssueImage(imagePath, issue.category);
+
+    issue.aiVerified         = result.aiVerified;
+    issue.aiNote             = result.aiNote;
+    issue.category           = result.detectedCategory;
+    issue.severityScore      = computeSeverity({
+      category: result.detectedCategory,
+      aiVerified: result.aiVerified,
+      clusterMembersCount: issue.clusterMembers?.length || 0,
+    });
+    await issue.save();
+
+    console.log(`[AI reclassify] issue=${issue._id} category=${issue.category} verified=${issue.aiVerified}`);
+    res.json({ issue, aiResult: result });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
