@@ -1,205 +1,325 @@
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, useMemo } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  Typography,
+  Button,
+  IconButton,
+  Badge,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Container,
+  Tooltip,
+  Divider
+} from '@mui/material';
+import {
+  Bell,
+  LogOut,
+  Shield,
+  User,
+  LayoutDashboard,
+  Plus,
+  Radio,
+  AlertTriangle,
+  Megaphone,
+  BarChart3,
+  Wallet,
+  Activity,
+  Globe,
+  Briefcase,
+  Menu as MenuIcon,
+  X,
+  ChevronDown
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { useState } from 'react';
-import { Bell, ChevronDown, LogOut, Shield, User, LayoutDashboard, Plus, Radio, AlertTriangle, Megaphone, BarChart3, Wallet, Activity, Globe, Briefcase } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { notifications = [], markAllRead } = useSocket() ?? {};
   const navigate = useNavigate();
-  const [showNotifs, setShowNotifs] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
 
-  const unread = (notifications ?? []).filter((n) => !n.read).length;
+  // State
+  const [anchorElUser, setAnchorElUser] = useState(null);
+  const [anchorElNotif, setAnchorElNotif] = useState(null);
 
-  const handleLogout = () => {
+  const unreadCount = useMemo(() =>
+    (notifications ?? []).filter((n) => !n.read).length,
+    [notifications]);
+
+  // Handlers
+  const handleOpenUserMenu = useCallback((event) => {
+    setAnchorElUser(event.currentTarget);
+  }, []);
+
+  const handleCloseUserMenu = useCallback(() => {
+    setAnchorElUser(null);
+  }, []);
+
+  const handleOpenNotifMenu = useCallback((event) => {
+    setAnchorElNotif(event.currentTarget);
+    markAllRead?.();
+  }, [markAllRead]);
+
+  const handleCloseNotifMenu = useCallback(() => {
+    setAnchorElNotif(null);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    handleCloseUserMenu();
     logout();
     navigate('/login');
-  };
+  }, [logout, navigate, handleCloseUserMenu]);
+
+  const isActive = useCallback((path) => location.pathname === path, [location]);
+
+  const NavButton = ({ to, icon: Icon, label, variant = 'text', color = 'inherit' }) => (
+    <Button
+      component={Link}
+      to={to}
+      startIcon={<Icon size={16} />}
+      sx={{
+        mx: 0.5,
+        px: 2,
+        py: 1,
+        borderRadius: 2,
+        fontSize: '0.75rem',
+        fontWeight: 700,
+        textTransform: 'none',
+        letterSpacing: '0.02em',
+        color: isActive(to) ? 'primary.main' : '#64748b',
+        backgroundColor: isActive(to) ? 'rgba(37, 99, 235, 0.05)' : 'transparent',
+        '&:hover': {
+          backgroundColor: 'rgba(0, 0, 0, 0.03)',
+          color: '#0f172a'
+        },
+        ...(variant === 'contained' && {
+          backgroundColor: '#2563eb',
+          color: '#ffffff',
+          '&:hover': { backgroundColor: '#1d4ed8' }
+        })
+      }}
+    >
+      {label}
+    </Button>
+  );
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        color: '#0f172a',
+        zIndex: (theme) => theme.zIndex.drawer + 1
+      }}
+    >
+      <Container maxWidth="xl">
+        <Toolbar disableGutters sx={{ minHeight: { xs: 64, md: 72 } }}>
+          {/* Logo */}
+          <Box
+            component={Link}
+            to="/"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              textDecoration: 'none',
+              mr: 4
+            }}
+          >
+            <Box sx={{
+              width: 32,
+              height: 32,
+              bgcolor: 'primary.main',
+              borderRadius: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 16px -4px rgba(37, 99, 235, 0.4)'
+            }}>
+              <Typography sx={{ color: 'white', fontWeight: 900, fontSize: '0.8rem' }}>C+</Typography>
+            </Box>
+            <Typography
+              variant="h6"
+              noWrap
+              sx={{
+                fontWeight: 900,
+                letterSpacing: '-0.02em',
+                color: 'inherit',
+                display: { xs: 'none', md: 'block' }
+              }}
+            >
+              CivicPlus
+            </Typography>
+          </Box>
 
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 select-none">
-          <div className="w-7 h-7 bg-blue-600 flex items-center justify-center rounded-sm">
-            <span className="text-white text-xs font-black tracking-tight">C+</span>
-          </div>
-          <span className="font-semibold text-gray-900 text-sm tracking-tight">CivicPlus</span>
+          {/* Desktop Navigation */}
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+            {user?.role === 'citizen' && (
+              <>
+                <NavButton to="/dashboard" icon={LayoutDashboard} label="My Issues" />
+                <NavButton to="/city-feed" icon={Radio} label="City Feed" />
+                <NavButton to="/report" icon={Plus} label="Report Issue" variant="contained" />
+              </>
+            )}
+            {user?.role === 'government' && (
+              <>
+                <NavButton to="/gov-dashboard" icon={Shield} label="Command Center" />
+                <NavButton to="/gov-alerts" icon={AlertTriangle} label="Alerts" />
+                <NavButton to="/gov-announcements" icon={Megaphone} label="Broadcast" />
+                <NavButton to="/gov-work" icon={Briefcase} label="Workers" />
+                <NavButton to="/gov-analytics" icon={BarChart3} label="Analytics" />
+                <NavButton to="/gov-budget" icon={Wallet} label="Budget" />
+                <NavButton to="/gov-wards" icon={Activity} label="Wards" />
+                <NavButton to="/gov-live" icon={Globe} label="Live" />
+              </>
+            )}
+          </Box>
 
-        </Link>
-
-        {/* Center nav */}
-        <div className="hidden md:flex items-center gap-1">
-          {user?.role === 'citizen' && (
-            <>
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <LayoutDashboard size={13} />
-                My Issues
-              </Link>
-              <Link
-                to="/city-feed"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <Radio size={13} />
-                City Feed
-              </Link>
-              <Link
-                to="/report"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              >
-                <Plus size={13} />
-                Report Issue
-              </Link>
-            </>
-          )}
-          {user?.role === 'government' && (
-            <>
-              <Link
-                to="/gov-dashboard"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <Shield size={13} />
-                Command Center
-              </Link>
-              <Link
-                to="/gov-alerts"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <AlertTriangle size={13} />
-                City Alerts
-              </Link>
-              <Link
-                to="/gov-announcements"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <Megaphone size={13} />
-                Announcements
-              </Link>
-              <Link
-                to="/gov-analytics"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <BarChart3 size={13} />
-                Analytics
-              </Link>
-              <Link
-                to="/gov-budget"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <Wallet size={13} />
-                Budget
-              </Link>
-              <Link
-                to="/gov-wards"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-              >
-                <Activity size={13} />
-                Manage Wards
-              </Link>
-              <Link
-                to="/gov-work"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors"
-              >
-                <Briefcase size={13} />
-                Work Force
-              </Link>
-              <Link
-                to="/gov-live"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-gray-900 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-              >
-                <Globe size={13} />
-                Live Dashboard
-              </Link>
-            </>
-          )}
-        </div>
-
-        {/* Right */}
-        <div className="flex items-center gap-2">
-          {user?.role === 'citizen' && (
-            <div className="relative">
-              <button
-                onClick={() => { setShowNotifs(!showNotifs); markAllRead?.(); }}
-                className="relative p-2 rounded-sm text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors"
-              >
-                <Bell size={15} />
-                {unread > 0 && (
-                  <span className="blink absolute top-1 right-1 w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                )}
-              </button>
-
-              {showNotifs && (
-                <div className="fade-in absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-sm shadow-md overflow-hidden z-50">
-                  <div className="px-4 py-2.5 border-b border-gray-200 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-gray-700 tracking-wide">Notifications</span>
-                    <span className="mono text-[10px] text-gray-400">{notifications.length}</span>
-                  </div>
+          {/* Right Side Actions */}
+          <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
+            {user?.role === 'citizen' && (
+              <Box>
+                <Tooltip title="Notifications">
+                  <IconButton
+                    onClick={handleOpenNotifMenu}
+                    sx={{
+                      bgcolor: 'rgba(0,0,0,0.03)',
+                      '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' }
+                    }}
+                  >
+                    <Badge badgeContent={unreadCount} color="error" variant="dot" invisible={unreadCount === 0}>
+                      <Bell size={18} color="#64748b" />
+                    </Badge>
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar-notif"
+                  anchorEl={anchorElNotif}
+                  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  keepMounted
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  open={Boolean(anchorElNotif)}
+                  onClose={handleCloseNotifMenu}
+                  PaperProps={{
+                    sx: { width: 320, borderRadius: 3, mt: 1, boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)' }
+                  }}
+                >
+                  <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8' }}>SYSTEM EVENTS</Typography>
+                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 600, color: '#94a3b8', bgcolor: '#f1f5f9', px: 1, borderRadius: 1 }}>{notifications.length}</Typography>
+                  </Box>
+                  <Divider />
                   {notifications.length === 0 ? (
-                    <p className="px-4 py-6 text-center text-gray-400 text-xs mono tracking-widest">NO EVENTS</p>
+                    <Box sx={{ py: 4, textAlign: 'center' }}>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', letterSpacing: '0.1em' }}>NO_NEW_DATA</Typography>
+                    </Box>
                   ) : (
-                    <ul className="max-h-72 overflow-y-auto divide-y divide-gray-100">
-                      {notifications.map((n) => (
-                        <li key={n.id} className="px-4 py-3 text-xs text-gray-600 hover:bg-gray-50 transition-colors">
-                          {n.message}
-                        </li>
-                      ))}
-                    </ul>
+                    notifications.map((n, idx) => (
+                      <MenuItem key={idx} sx={{ py: 1.5, whiteSpace: 'normal' }}>
+                        <Typography sx={{ fontSize: '0.8rem', color: '#475569' }}>{n.message}</Typography>
+                      </MenuItem>
+                    ))
                   )}
-                </div>
-              )}
-            </div>
-          )}
+                </Menu>
+              </Box>
+            )}
 
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-sm hover:bg-gray-100 transition-colors"
-              >
-                <div className="w-6 h-6 bg-blue-100 border border-blue-200 rounded-sm flex items-center justify-center text-[11px] font-bold text-blue-700">
-                  {user.name?.[0]?.toUpperCase()}
-                </div>
-                <span className="text-xs text-gray-700 hidden md:block font-medium">{user.name}</span>
-                <ChevronDown size={12} className="text-gray-400 hidden md:block" />
-              </button>
-
-              {menuOpen && (
-                <div className="fade-in absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-sm shadow-md overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <p className="text-xs font-semibold text-gray-900 truncate">{user.name}</p>
-                    <p className="mono text-[10px] text-gray-400 mt-0.5 uppercase tracking-widest">{user.role}</p>
-                  </div>
-                  <Link
+            {user ? (
+              <Box>
+                <Tooltip title="Account settings">
+                  <Button
+                    onClick={handleOpenUserMenu}
+                    endIcon={<ChevronDown size={14} />}
+                    sx={{
+                      textTransform: 'none',
+                      bgcolor: 'rgba(0,0,0,0.03)',
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: 2.5,
+                      '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' }
+                    }}
+                  >
+                    <Avatar
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        fontSize: '0.7rem',
+                        fontWeight: 900,
+                        bgcolor: user.role === 'government' ? 'error.main' : 'primary.main',
+                        mr: 1
+                      }}
+                    >
+                      {user.name?.[0]?.toUpperCase()}
+                    </Avatar>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#1e293b', display: { xs: 'none', sm: 'block' } }}>
+                      {user.name}
+                    </Typography>
+                  </Button>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar-user"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  keepMounted
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                  PaperProps={{
+                    sx: { width: 220, borderRadius: 3, mt: 1, boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1)' }
+                  }}
+                >
+                  <Box sx={{ px: 2, py: 1.5 }}>
+                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>{user.name}</Typography>
+                    <Typography sx={{ fontSize: '0.65rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {user.role} Account
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <MenuItem
+                    component={Link}
                     to={user.role === 'government' ? '/gov-profile' : '/profile'}
-                    onClick={() => setMenuOpen(false)}
-                    className="w-full flex items-center gap-2 px-4 py-3 text-xs text-gray-600 hover:bg-gray-50 transition-colors border-b border-gray-200"
+                    onClick={handleCloseUserMenu}
+                    sx={{ py: 1.5 }}
                   >
-                    <User size={12} />
-                    View Profile
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-3 text-xs text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <LogOut size={12} />
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link to="/login" className="text-xs text-gray-500 hover:text-gray-900 px-3 py-1.5 transition-colors">
-              Sign In
-            </Link>
-          )}
-        </div>
-      </div>
-    </nav>
+                    <ListItemIcon><User size={18} /></ListItemIcon>
+                    <ListItemText primary="View Profile" primaryTypographyProps={{ sx: { fontSize: '0.8rem', fontWeight: 600 } }} />
+                  </MenuItem>
+                  <MenuItem onClick={handleLogout} sx={{ py: 1.5, color: 'error.main' }}>
+                    <ListItemIcon><LogOut size={18} color="#ef4444" /></ListItemIcon>
+                    <ListItemText primary="Sign Out" primaryTypographyProps={{ sx: { fontSize: '0.8rem', fontWeight: 600 } }} />
+                  </MenuItem>
+                </Menu>
+              </Box>
+            ) : (
+              <Button
+                component={Link}
+                to="/login"
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#64748b'
+                }}
+              >
+                Sign In
+              </Button>
+            )}
+          </Box>
+        </Toolbar>
+      </Container>
+    </AppBar>
   );
 }
