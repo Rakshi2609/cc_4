@@ -8,6 +8,12 @@ import {
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 
+const imgUrl = (u) => {
+    if (!u || u === '') return null;
+    if (u.startsWith('http')) return u;
+    return `http://localhost:5000${u.startsWith('/') ? '' : '/'}${u}`;
+};
+
 export default function GovWorkAssignment() {
     const [issues, setIssues] = useState([]);
     const [workers, setWorkers] = useState([]);
@@ -59,7 +65,8 @@ export default function GovWorkAssignment() {
             setAfterImage(null);
             fetchData();
         } catch (err) {
-            alert('Resolution upload failed');
+            const msg = err.response?.data?.message || 'Resolution upload failed';
+            alert(msg);
         } finally {
             setUploading(false);
         }
@@ -155,7 +162,7 @@ export default function GovWorkAssignment() {
                                 <div className="grid grid-cols-2 gap-4 mt-8 pb-8 border-b border-gray-100">
                                     <div>
                                         <p className="mono text-[10px] text-gray-400 uppercase mb-2">Original Report</p>
-                                        <img src={selectedIssue.imageUrl} alt="Before" className="w-full h-48 object-cover rounded-sm border border-gray-200" />
+                                        <img src={imgUrl(selectedIssue.imageUrl)} alt="Before" className="w-full h-48 object-cover rounded-sm border border-gray-200" />
                                     </div>
                                     <div>
                                         <p className="mono text-[10px] text-gray-400 uppercase mb-2">AI Work Plan</p>
@@ -246,7 +253,7 @@ export default function GovWorkAssignment() {
                                             <p className="text-sm text-green-600 mt-2">Verified by AI Quality Control Engine · {selectedIssue.governmentRemarks || 'Resolution confirmed.'}</p>
                                             {selectedIssue.resolutionPhotoUrl && (
                                                 <div className="mt-4 max-w-sm mx-auto">
-                                                    <img src={selectedIssue.resolutionPhotoUrl} alt="Resolved" className="w-full h-40 object-cover rounded-sm border border-green-200" />
+                                                    <img src={imgUrl(selectedIssue.resolutionPhotoUrl)} alt="Resolved" className="w-full h-40 object-cover rounded-sm border border-green-200" />
                                                     <p className="text-[10px] text-green-500 mono uppercase mt-1">Resolution Evidence</p>
                                                 </div>
                                             )}

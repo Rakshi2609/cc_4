@@ -33,6 +33,7 @@ export default function IssueMap({ issues = [], title = 'Issue Heatmap', readOnl
   const navigate = useNavigate();
   const validIssues = issues.filter((i) => Array.isArray(i.location?.coordinates) && i.location.coordinates.length >= 2 && i.location.coordinates[0] != null && i.location.coordinates[1] != null);
   const [heatmapOn, setHeatmapOn] = useState(false);
+  const [localVotes, setLocalVotes] = useState({});
 
   // Default center — India centroid  
   const defaultCenter = [20.5937, 78.9629];
@@ -158,27 +159,37 @@ export default function IssueMap({ issues = [], title = 'Issue Heatmap', readOnl
                           onClick={async (e) => {
                             e.stopPropagation();
                             try {
-                              await api.post(`/issues/${issue._id}/vote`, { type: 'up' });
-                              // Simple feedback: update UI would need parent refetch, 
-                              // for now we just show alert or wait for refresh
+                              const res = await api.post(`/issues/${issue._id}/vote`, { type: 'up' });
+                              setLocalVotes(prev => ({
+                                ...prev,
+                                [issue._id]: { upvotes: res.data.upvotes.length, downvotes: res.data.downvotes.length }
+                              }));
                             } catch (err) { console.error(err); }
                           }}
                           className="flex items-center gap-1 text-gray-500 hover:text-green-600 transition-colors"
                         >
                           <ThumbsUp size={12} />
-                          <span className="mono text-[10px]">{issue.upvotes?.length || 0}</span>
+                          <span className="mono text-[10px]">
+                            {localVotes[issue._id]?.upvotes ?? issue.upvotes?.length ?? 0}
+                          </span>
                         </button>
                         <button
                           onClick={async (e) => {
                             e.stopPropagation();
                             try {
-                              await api.post(`/issues/${issue._id}/vote`, { type: 'down' });
+                              const res = await api.post(`/issues/${issue._id}/vote`, { type: 'down' });
+                              setLocalVotes(prev => ({
+                                ...prev,
+                                [issue._id]: { upvotes: res.data.upvotes.length, downvotes: res.data.downvotes.length }
+                              }));
                             } catch (err) { console.error(err); }
                           }}
                           className="flex items-center gap-1 text-gray-500 hover:text-red-600 transition-colors"
                         >
                           <ThumbsDown size={12} />
-                          <span className="mono text-[10px]">{issue.downvotes?.length || 0}</span>
+                          <span className="mono text-[10px]">
+                            {localVotes[issue._id]?.downvotes ?? issue.downvotes?.length ?? 0}
+                          </span>
                         </button>
                       </div>
                       {!readOnly && (

@@ -245,7 +245,7 @@ export const getAllIssues = async (req, res) => {
 export const getMapIssues = async (req, res) => {
   try {
     const issues = await Issue.find({})
-      .select('title category status location severityScore aiVerified createdAt citizen')
+      .select('title category status location severityScore aiVerified createdAt citizen imageUrl upvotes downvotes clusterMembers isCluster clusterId')
       .populate('citizen', 'name')
       .lean();
     res.json(issues);
@@ -500,16 +500,23 @@ export const voteIssue = async (req, res) => {
     if (!issue) return res.status(404).json({ message: 'Issue not found' });
 
     const userId = req.user.id;
-    issue.upvotes = issue.upvotes.filter(id => id.toString() !== userId);
-    issue.downvotes = issue.downvotes.filter(id => id.toString() !== userId);
+    if (!Array.isArray(issue.upvotes)) issue.upvotes = [];
+    if (!Array.isArray(issue.downvotes)) issue.downvotes = [];
+
+    issue.upvotes = issue.upvotes.filter((id) => id && id.toString() !== userId);
+    issue.downvotes = issue.downvotes.filter((id) => id && id.toString() !== userId);
 
     if (type === 'up') issue.upvotes.push(userId);
     if (type === 'down') issue.downvotes.push(userId);
 
     await issue.save();
-    res.json({ upvotes: issue.upvotes.length, downvotes: issue.downvotes.length });
+    res.json({
+      upvotes: issue.upvotes.map(id => id.toString()),
+      downvotes: issue.downvotes.map(id => id.toString())
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('[Vote Error] ID:', req.params.id, 'Error:', err);
+    res.status(500).json({ message: err.message, stack: err.stack });
   }
 };
 
@@ -558,19 +565,84 @@ export const resolveIssue = async (req, res) => {
     const resolutionPhotoUrl = req.file ? req.file.path : '';
     issue.resolutionPhotoUrl = resolutionPhotoUrl;
 
+    let aiResolutionNote = '';
+    let isAIResolved = false;
+
     // AI Verify Resolution
     if (issue.imageUrl && resolutionPhotoUrl) {
-      const result = await verifyResolution(issue.imageUrl, resolutionPhotoUrl, issue.category);
-      if (result.isResolved) {
-        issue.status = 'resolved';
+      try {
+        const result = await verifyResolution(issue.imageUrl, resolutionPhotoUrl, issue.category);
+        isAIResolved = result.isResolved;
+        aiResolutionNote = result.note;
+      } catch (aiErr) {
+        console.warn('[AI] Resolution verification error:', aiErr.message);
+        isAIResolved = true; // Fallback to trust on AI error
+        aiResolutionNote = 'AI verification failed, defaulting to trust.';
       }
-      issue.governmentRemarks = result.note;
     } else {
-      issue.status = 'resolved';
+      isAIResolved = true;
+      aiResolutionNote = 'Resolution submitted without comparison.';
     }
 
-    await issue.save();
-    res.json(issue);
+    // Government users can always resolve, workers need AI verification OR it defaults to resolved if no comparison possible
+    if (isAIResolved || req.user.role === 'government') {
+      issue.status = 'resolved';
+      issue.governmentRemarks = aiResolutionNote;
+
+      // Update history
+      const historyEntry = {
+        status: 'resolved',
+        remark: aiResolutionNote || 'Issue resolved by worker.',
+        updatedBy: req.user.id,
+      };
+      issue.statusHistory.push(historyEntry);
+
+      await issue.save();
+
+      // ── Cascade to cluster members ────────────────────────────
+      if (issue.clusterMembers && issue.clusterMembers.length > 0) {
+        await Issue.updateMany(
+          { _id: { $in: issue.clusterMembers } },
+          {
+            $set: {
+              status: 'resolved',
+              resolutionPhotoUrl: issue.resolutionPhotoUrl,
+              governmentRemarks: `[Cluster Resolved] ${aiResolutionNote}`
+            },
+            $push: { statusHistory: { ...historyEntry, remark: `[Cluster Resolved] ${aiResolutionNote}` } }
+          }
+        );
+
+        // Notify each member's citizen via socket
+        const memberIssues = await Issue.find({ _id: { $in: issue.clusterMembers } });
+        for (const member of memberIssues) {
+          req.io?.to(member.citizen.toString()).emit('issue_updated', {
+            issueId: member._id,
+            status: 'resolved',
+            remark: '[Cluster Resolved] ' + aiResolutionNote,
+            clusterUpdate: true,
+          });
+        }
+      }
+      // ──────────────────────────────────────────────────────────
+
+      // Notify primary issue's citizen
+      req.io?.to(issue.citizen.toString()).emit('issue_updated', {
+        issueId: issue._id,
+        status: 'resolved',
+        remark: aiResolutionNote || 'Issue resolved.',
+      });
+
+      return res.json(issue);
+    } else {
+      // If AI rejects it, we still save the photo but don't resolve
+      issue.governmentRemarks = aiResolutionNote;
+      await issue.save();
+      return res.status(400).json({
+        message: 'AI Resolution Verification Failed: ' + aiResolutionNote,
+        issue
+      });
+    }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

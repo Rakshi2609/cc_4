@@ -3,7 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
 // Returns Cloudinary/remote URLs as-is; prepends backend host for legacy local paths
-const imgUrl = (u) => u ? (u.startsWith('http') ? u : `http://localhost:5000${u}`) : null;
+const imgUrl = (u) => {
+  if (!u || u === '') return null;
+  if (u.startsWith('http')) return u;
+  return `http://localhost:5000${u.startsWith('/') ? '' : '/'}${u}`;
+};
 import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import TransparencyLoop from '../components/TransparencyLoop';
@@ -292,8 +296,8 @@ export default function IssueDetail() {
                     key={r.issueId}
                     onClick={() => setClusterSlideIdx(i)}
                     className={`flex items-center justify-between border rounded-sm px-3 py-2 cursor-pointer transition-colors ${i === clusterSlideIdx
-                        ? 'bg-amber-100 border-amber-300'
-                        : 'bg-white border-amber-100 hover:bg-amber-50'
+                      ? 'bg-amber-100 border-amber-300'
+                      : 'bg-white border-amber-100 hover:bg-amber-50'
                       }`}
                   >
                     <div className="flex items-center gap-2">
@@ -444,7 +448,7 @@ export default function IssueDetail() {
                     onClick={async () => {
                       try {
                         const res = await api.post(`/issues/${id}/vote`, { type: 'up' });
-                        setIssue(prev => ({ ...prev, upvotes: Array(res.data.upvotes).fill(0), downvotes: Array(res.data.downvotes).fill(0) }));
+                        setIssue(prev => ({ ...prev, upvotes: res.data.upvotes, downvotes: res.data.downvotes }));
                       } catch (err) { console.error(err); }
                     }}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 hover:border-green-500 hover:text-green-600 transition-all text-gray-500"
@@ -456,7 +460,7 @@ export default function IssueDetail() {
                     onClick={async () => {
                       try {
                         const res = await api.post(`/issues/${id}/vote`, { type: 'down' });
-                        setIssue(prev => ({ ...prev, upvotes: Array(res.data.upvotes).fill(0), downvotes: Array(res.data.downvotes).fill(0) }));
+                        setIssue(prev => ({ ...prev, upvotes: res.data.upvotes, downvotes: res.data.downvotes }));
                       } catch (err) { console.error(err); }
                     }}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-sm border border-gray-200 hover:border-red-500 hover:text-red-600 transition-all text-gray-500"

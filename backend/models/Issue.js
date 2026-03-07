@@ -36,6 +36,10 @@ const issueSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    address: {
+      type: String,
+      default: '',
+    },
     location: {
       type: {
         type: String,
@@ -122,6 +126,14 @@ const issueSchema = new mongoose.Schema(
     aiWorkPlan: {
       type: [String],
       default: [],
+    },
+    governmentRemarks: {
+      type: String,
+      default: '',
+    },
+    assignedDepartment: {
+      type: String,
+      default: '',
     },
   },
   { timestamps: true }

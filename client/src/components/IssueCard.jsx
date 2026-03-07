@@ -3,7 +3,11 @@ import StatusBadge from './StatusBadge';
 import { ShieldCheck, Flame, MapPin, Activity, Building2 } from 'lucide-react';
 
 // Returns Cloudinary/remote URLs as-is; prepends backend host for legacy local paths
-const imgUrl = (u) => u ? (u.startsWith('http') ? u : `http://localhost:5000${u}`) : null;
+const imgUrl = (u) => {
+  if (!u || u === '') return null;
+  if (u.startsWith('http')) return u;
+  return `http://localhost:5000${u.startsWith('/') ? '' : '/'}${u}`;
+};
 
 const CATEGORY_ICON = {
   Pothole: 'M', Streetlight: 'E', Garbage: 'W', Drainage: 'D', 'Water Leakage': 'H', Others: 'G',
@@ -30,7 +34,7 @@ export default function IssueCard({ issue, govView = false }) {
   const severity = issue.severityScore ?? 0;
   const sevColor = severity >= 70 ? 'text-red-600 bg-red-50 border-red-200'
     : severity >= 50 ? 'text-amber-700 bg-amber-50 border-amber-200'
-    : 'text-green-700 bg-green-50 border-green-200';
+      : 'text-green-700 bg-green-50 border-green-200';
   const sevBar = severity >= 70 ? 'bg-red-500' : severity >= 50 ? 'bg-amber-400' : 'bg-green-500';
 
   return (

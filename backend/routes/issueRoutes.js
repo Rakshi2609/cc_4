@@ -15,7 +15,6 @@ import {
   getMapIssues,
   getGovtClusters,
   getIssueCluster,
-  getIssueCluster,
   reclassifyIssue,
   voteIssue,
   getAssignableUsers,
