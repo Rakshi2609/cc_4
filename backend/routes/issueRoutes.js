@@ -12,6 +12,7 @@ import {
   updateIssueStatus,
   deleteIssue,
   getStats,
+  getPublicStats,
   getMapIssues,
   getGovtClusters,
   getIssueCluster,
@@ -24,6 +25,7 @@ import {
 
 const router = express.Router();
 
+router.get('/public-stats', getPublicStats);
 router.get('/clusters', protect, restrictToGovt, getGovtClusters);
 router.get('/map', protect, getMapIssues);
 router.get('/stats', protect, restrictToGovt, getStats);

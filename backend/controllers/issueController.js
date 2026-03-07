@@ -275,6 +275,31 @@ export const getStats = async (req, res) => {
   }
 };
 
+// GET /api/issues/public-stats — no auth required, used on landing page
+export const getPublicStats = async (req, res) => {
+  try {
+    const [resolvedCount, totalIssues, activeCitizens, hotspots] = await Promise.all([
+      Issue.countDocuments({ status: 'resolved' }),
+      Issue.countDocuments(),
+      User.countDocuments({ role: 'citizen' }),
+      Issue.countDocuments({ isCluster: true }),
+    ]);
+
+    // Average response time: avg days from createdAt to first status change out of pending
+    const responsePipeline = await Issue.aggregate([
+      { $match: { status: { $in: ['in-progress', 'resolved'] }, statusHistory: { $exists: true, $not: { $size: 0 } } } },
+      { $project: { diffHours: { $divide: [{ $subtract: [{ $arrayElemAt: ['$statusHistory.changedAt', 0] }, '$createdAt'] }, 3600000] } } },
+      { $group: { _id: null, avg: { $avg: '$diffHours' } } },
+    ]);
+    const avgHours = responsePipeline[0]?.avg ?? null;
+    const avgResponseTime = avgHours !== null ? `${avgHours.toFixed(1)}h` : 'N/A';
+
+    res.json({ resolvedCount, totalIssues, activeCitizens, hotspotsIdentified: hotspots, averageResponseTime: avgResponseTime });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // GET /api/issues/:id
 export const getIssueById = async (req, res) => {
   try {

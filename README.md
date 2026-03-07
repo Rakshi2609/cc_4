@@ -5,16 +5,16 @@
 > A production-ready civic issue reporting platform with smart geo-clustering, real-time notifications, transparent audit trails, and role-based dashboards for citizens and government officials.
 
 <p align="center">
-  <a href="https://drive.google.com/file/d/1PGxFAuCFJuLhGEp5MuZfKBpRvgh3_2o7/view?usp=sharing">
+  <a href="https://drive.google.com/file/d/12bo_ga9FtjNNMZFZiPV3eXX3hUw3efBH/view?usp=sharing">
     <img src="https://img.shields.io/badge/▶%20Demo%20Video-Watch%20Now-red?style=for-the-badge&logo=google-drive&logoColor=white" alt="Demo Video" />
   </a>
   &nbsp;
-  <a href="https://drive.google.com/file/d/1SnqoXMkdEb1A9Z4SH0A2Aw6QRQzH2QV2/view?usp=sharing">
+  <a href="https://drive.google.com/file/d/1kiyl2MqXdXG5NCBibqdpL1X2Zx9M47QU/view?usp=sharing">
     <img src="https://img.shields.io/badge/📊%20Presentation-Open%20PPT-blue?style=for-the-badge&logo=google-drive&logoColor=white" alt="Presentation" />
   </a>
   &nbsp;
-  <a href="https://github.com/tanushbhootra576/cc_round3">
-    <img src="https://img.shields.io/badge/GitHub-cc__round3-black?style=for-the-badge&logo=github" alt="GitHub" />
+  <a href="https://github.com/Rakshi2609/cc_4">
+    <img src="https://img.shields.io/badge/GitHub-cc__4-black?style=for-the-badge&logo=github" alt="GitHub" />
   </a>
 </p>
 
@@ -36,17 +36,17 @@
 
 ## Key Features
 
-| Feature                        | Description                                                                                               |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| **Photo Reports**             | Citizens capture infrastructure issues with GPS location, category, and description                       |
-| **AI Vision Verification**     | Automatic category detection and authenticity verification using Vision AI                                |
-| **Workforce Management**       | Assign maintenance crews to issues, generate AI technical work plans, and track progress                  |
-| **Smart Geo-Clustering**      | Automatically groups similar reports within 100m radius into hotspots, eliminating duplicates             |
-| **Resolution Verification**    | AI-assisted Before/After photo comparison to ensure quality control on infrastructure repairs             |
-| **Interactive Map**           | Live map visualization with custom markers, real-time upvotes, and cluster member details                 |
-| **Real-Time Notifications**   | WebSocket-powered instant updates on issue status changes via Socket.IO                                   |
-| **Government Dashboards**      | Command centers for city-wide analytics, fiscal planning, and workforce control                          |
-| **Priority Scoring**          | Issues ranked by urgency: cluster size, age, upvotes, and severity                                        |
+| Feature                     | Description                                                                                   |
+| --------------------------- | --------------------------------------------------------------------------------------------- |
+| **Photo Reports**           | Citizens capture infrastructure issues with GPS location, category, and description           |
+| **AI Vision Verification**  | Automatic category detection and authenticity verification using Vision AI                    |
+| **Workforce Management**    | Assign maintenance crews to issues, generate AI technical work plans, and track progress      |
+| **Smart Geo-Clustering**    | Automatically groups similar reports within 100m radius into hotspots, eliminating duplicates |
+| **Resolution Verification** | AI-assisted Before/After photo comparison to ensure quality control on infrastructure repairs |
+| **Interactive Map**         | Live map visualization with custom markers, real-time upvotes, and cluster member details     |
+| **Real-Time Notifications** | WebSocket-powered instant updates on issue status changes via Socket.IO                       |
+| **Government Dashboards**   | Command centers for city-wide analytics, fiscal planning, and workforce control               |
+| **Priority Scoring**        | Issues ranked by urgency: cluster size, age, upvotes, and severity                            |
 
 ---
 
@@ -88,18 +88,25 @@
 ### Gallery
 
 <p align="center">
-  <img src="client/public/screenshots/Screenshot from 2026-02-28 17-56-15.png" alt="Landing Page" width="48%" />
+  <img src="client/public/screenshots/Screenshot from 2026-03-01 18-58-25.png" alt="Landing Page" width="48%" />
   &nbsp;
-  <img src="client/public/screenshots/Screenshot from 2026-03-01 18-58-25.png" alt="Report Issue" width="48%" />
+  <img src="client/public/screenshots/ReportIssue.png" alt="Report Issue" width="48%" />
 </p>
 <p align="center"><em>Landing Page &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Report Issue Form</em></p>
 
 <p align="center">
   <img src="client/public/screenshots/Screenshot from 2026-03-01 19-07-48.png" alt="Citizen Dashboard" width="48%" />
   &nbsp;
-  <img src="client/public/screenshots/Screenshot from 2026-03-01 19-08-40.png" alt="Issue Detail" width="48%" />
+  <img src="client/public/screenshots/userDashboard.png" alt="User Dashboard" width="48%" />
 </p>
-<p align="center"><em>Citizen Dashboard &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Issue Detail</em></p>
+<p align="center"><em>Citizen Dashboard &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; User Dashboard</em></p>
+
+<p align="center">
+  <img src="client/public/screenshots/IssueResolve.png" alt="Issue Resolution" width="48%" />
+  &nbsp;
+  <img src="client/public/screenshots/CityFeed.png" alt="City Feed" width="48%" />
+</p>
+<p align="center"><em>Issue Resolution &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; City Feed</em></p>
 
 <p align="center">
   <img src="client/public/screenshots/budget.png" alt="Fiscal Command Center — Budget Dashboard" width="48%" />
@@ -109,9 +116,11 @@
 <p align="center"><em>Fiscal Command Center (Budget Dashboard) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ward Management</em></p>
 
 <p align="center">
-  <img src="client/public/screenshots/Screenshot 2026-03-07 014154.png" alt="Government Analytics" width="96%" />
+  <img src="client/public/screenshots/WorkAssign.png" alt="Work Assignment" width="48%" />
+  &nbsp;
+  <img src="client/public/screenshots/Screenshot 2026-03-07 014154.png" alt="Government Analytics" width="48%" />
 </p>
-<p align="center"><em>City Intelligence Analytics Dashboard</em></p>
+<p align="center"><em>Work Assignment &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; City Intelligence Analytics</em></p>
 
 ---
 
@@ -124,15 +133,16 @@ Access: Government role only
 
 The **Workforce Command Center** bridges the gap between digital reports and physical repairs.
 
-| Phase                 | System Action                                                                                                                              |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Assignment**        | Government selects an unassigned ticket and points it to a specific maintenance crew member.                                              |
-| **AI Strategy**       | Upon assignment, the AI analyzes the issue photo and generates a 4-step technical **Maintenance Strategy** specifically for that problem.  |
-| **Execution**         | The ticket status transitions to `IN-PROGRESS`. Crew members execute the AI work plan in the field.                                        |
-| **Resolution**        | Crew uploads a "Resolution Photo". The AI compares the *Before* and *After* images to verify if the infrastructure issue is truly fixed.   |
-| **Verification**      | If verified, the issue is marked `RESOLVED`. Government can override and manually confirm resolutions via the dashboard.                   |
+| Phase            | System Action                                                                                                                             |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Assignment**   | Government selects an unassigned ticket and points it to a specific maintenance crew member.                                              |
+| **AI Strategy**  | Upon assignment, the AI analyzes the issue photo and generates a 4-step technical **Maintenance Strategy** specifically for that problem. |
+| **Execution**    | The ticket status transitions to `IN-PROGRESS`. Crew members execute the AI work plan in the field.                                       |
+| **Resolution**   | Crew uploads a "Resolution Photo". The AI compares the _Before_ and _After_ images to verify if the infrastructure issue is truly fixed.  |
+| **Verification** | If verified, the issue is marked `RESOLVED`. Government can override and manually confirm resolutions via the dashboard.                  |
 
 **Key API endpoints:**
+
 - `POST /api/issues/:id/assign` → Assignment + AI plan generation
 - `POST /api/issues/:id/resolve` → Resolution + AI verification
 
@@ -287,8 +297,8 @@ GET /api/analytics/kavach-overview   → CHI score, ward count, per-resource ave
 
 ```bash
 # Clone repository
-git clone https://github.com/tanushbhootra576/cc_round3.git
-cd cc_round3
+git clone https://github.com/Rakshi2609/cc_4.git
+cd cc_4
 
 # Backend setup
 cd backend
@@ -454,14 +464,12 @@ MongoDB
 
 | Resource                  | Link                                                                                                        | Description                                            |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 🎬 **Demo Video**         | [Watch on Google Drive](https://drive.google.com/file/d/1xpuIuD8RugeATRKW7oATbxpfwvhaSn7N/view?usp=sharing) | Full walkthrough of the citizen and government portals |
-| 📊 **Presentation (PPT)** | [Open on Google Drive](https://docs.google.com/presentation/d/1I_mqkpSsxG3iS_1NiP3gy8OB5VEilahN/edit)  | Project architecture, features, and design decisions   |
-| 💻 **Source Code**        | [github.com/tanushbhootra576/cc_round3](https://github.com/tanushbhootra576/cc_round3)                      | Full source — backend, frontend, and seed scripts      |
+| 🎬 **Demo Video**         | [Watch on Google Drive](https://drive.google.com/file/d/12bo_ga9FtjNNMZFZiPV3eXX3hUw3efBH/view?usp=sharing) | Full walkthrough of the citizen and government portals |
+| 📊 **Presentation (PPT)** | [Open on Google Drive](https://drive.google.com/file/d/1kiyl2MqXdXG5NCBibqdpL1X2Zx9M47QU/view?usp=sharing)  | Project architecture, features, and design decisions   |
+| 💻 **Source Code**        | [github.com/Rakshi2609/cc_4](https://github.com/Rakshi2609/cc_4)                                            | Full source — backend, frontend, and seed scripts      |
 
 ---
 
 ## Support
 
-For issues or questions, open a [GitHub Issue](https://github.com/tanushbhootra576/cc_round3/issues) or contact the team.
-# cc_4
-# cc_4
+For issues or questions, open a [GitHub Issue](https://github.com/Rakshi2609/cc_4/issues) or contact the team.
