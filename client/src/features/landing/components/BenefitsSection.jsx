@@ -43,7 +43,7 @@ const benefitCards = [
 
 export const BenefitsSection = () => {
     return (
-        <Box component="section" sx={{ py: 20, backgroundColor: '#f8fafc' }}>
+        <Box component="section" sx={{ pt: 20, pb: 25, backgroundColor: '#f8fafc' }}>
             <Container maxWidth="xl">
                 <Box sx={{ maxWidth: 800, mb: 12, mx: 'auto', textAlign: 'center' }}>
                     <Typography

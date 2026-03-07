@@ -41,7 +41,8 @@ export const LandingHero = () => {
                 minHeight: '85vh',
                 display: 'flex',
                 alignItems: 'center',
-                pt: { xs: 15, md: 5 },
+                pt: { xs: 15, md: 20 },
+                pb: { xs: 10, md: 15 },
                 position: 'relative',
                 overflow: 'hidden',
                 backgroundColor: '#ffffff'
@@ -84,7 +85,7 @@ export const LandingHero = () => {
                             fontWeight: 900,
                             lineHeight: 1.1,
                             letterSpacing: '-0.04em',
-                            mb: 4,
+                            mb: 6,
                             color: '#0f172a'
                         }}
                     >
@@ -104,7 +105,7 @@ export const LandingHero = () => {
                         sx={{
                             color: '#64748b',
                             lineHeight: 1.6,
-                            mb: 6,
+                            mb: 8,
                             maxWidth: 700,
                             mx: 'auto',
                             fontWeight: 400

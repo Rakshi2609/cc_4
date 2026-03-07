@@ -22,7 +22,7 @@ export const LandingFeature = () => {
             {/* Additional simple static footer/CTA */}
             <Box
                 sx={{
-                    py: 15,
+                    py: 20,
                     textAlign: 'center',
                     backgroundColor: '#0f172a',
                     color: '#ffffff'
@@ -31,21 +31,22 @@ export const LandingFeature = () => {
                 <Box sx={{ maxWidth: 800, mx: 'auto', px: 4 }}>
                     <Box
                         sx={{
-                            fontSize: '10px',
+                            fontSize: '11px',
                             fontFamily: 'monospace',
-                            letterSpacing: '0.4em',
+                            letterSpacing: '0.5em',
                             color: 'rgba(255,255,255,0.4)',
-                            mb: 4
+                            mb: 6
                         }}
                     >
                         TRANSFORM_THE_CITY_NOW
                     </Box>
-                    <Box sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, fontWeight: 900, mb: 4, lineHeight: 1 }}>
+                    <Box sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, fontWeight: 900, mb: 6, lineHeight: 1 }}>
                         Ready to contribute?
                     </Box>
                     <Box
                         sx={{
-                            p: 2,
+                            p: 2.5,
+                            mt: 4,
                             border: '1px solid rgba(255,255,255,0.1)',
                             display: 'inline-block',
                             borderRadius: 4,

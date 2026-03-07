@@ -42,7 +42,7 @@ export const PublicStats = () => {
                 display: 'grid',
                 gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
                 gap: 4,
-                py: 6,
+                py: 12,
                 borderY: '1px solid',
                 borderColor: 'divider',
                 backgroundColor: 'rgba(255, 255, 255, 0.5)',
