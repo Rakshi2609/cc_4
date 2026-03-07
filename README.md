@@ -22,7 +22,8 @@
 
 ## Quick Navigation
 
-- [Key Features](#key-features-summary)
+- [Key Features](#key-features)
+- [Workforce Management](#workforce-assignment--verification)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Environment Setup](#environment-setup)
@@ -35,22 +36,17 @@
 
 ## Key Features
 
-| Feature                      | Description                                                                                               |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| ** Photo Reports**           | Citizens capture infrastructure issues with GPS location, category, and description                       |
-| ** AI Verification**         | Image validation and automatic issue categorization                                                       |
-| ** Smart Geo-Clustering**    | Automatically groups similar reports within 100m radius into hotspots, eliminating duplicates             |
-| ** Priority Scoring**        | Issues ranked by urgency: cluster size, age, upvotes, severity                                            |
-| ** Interactive Map**         | Live map visualization with custom markers for each issue cluster                                         |
-| ** Real-Time Notifications** | WebSocket-powered instant updates on issue status changes via Socket.IO                                   |
-| ** User Profiles**           | Separate profile pages for citizens (track reported issues) and government (view managed issues)          |
-| ** Government Dashboard**    | Command center to manage, prioritize, reassign, and resolve issues with bulk actions                      |
-| ** Status Tracking**         | Transparent issue timeline with full audit trail of all status changes                                    |
-| ** Issue Resolution**        | Government can mark issues resolved, automatically notify all affected citizens with confetti celebration |
-| ** JWT Authentication**      | Stateless auth with role-based access control (citizen/government)                                        |
-| ** Role-Based Access**       | Citizen and Government portals with separate views and permissions                                        |
-| ** File Upload**             | Multer-powered image uploads with validation and secure storage                                           |
-| ** Responsive Design**       | Mobile-first UI optimized for all devices using Tailwind CSS                                              |
+| Feature                        | Description                                                                                               |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| **Photo Reports**             | Citizens capture infrastructure issues with GPS location, category, and description                       |
+| **AI Vision Verification**     | Automatic category detection and authenticity verification using Vision AI                                |
+| **Workforce Management**       | Assign maintenance crews to issues, generate AI technical work plans, and track progress                  |
+| **Smart Geo-Clustering**      | Automatically groups similar reports within 100m radius into hotspots, eliminating duplicates             |
+| **Resolution Verification**    | AI-assisted Before/After photo comparison to ensure quality control on infrastructure repairs             |
+| **Interactive Map**           | Live map visualization with custom markers, real-time upvotes, and cluster member details                 |
+| **Real-Time Notifications**   | WebSocket-powered instant updates on issue status changes via Socket.IO                                   |
+| **Government Dashboards**      | Command centers for city-wide analytics, fiscal planning, and workforce control                          |
+| **Priority Scoring**          | Issues ranked by urgency: cluster size, age, upvotes, and severity                                        |
 
 ---
 
@@ -58,12 +54,11 @@
 
 ### Frontend
 
-- React 18 + Vite 7, Tailwind CSS 4, React Router DOM 6, Axios, Socket.IO Client, React-Leaflet, lucide-react icons
-  - Cloudinary (images served from Cloudinary via backend)
+- React 18 + Vite, Tailwind CSS 4, React Router DOM 6, Axios, Socket.IO Client, React-Leaflet, Lucide React, react-compare-image
 
 ### Backend
 
-- Node.js 18+, Express 4, MongoDB + Mongoose, JWT authentication, Socket.IO, Multer file uploads, Google Gemini Vision API (optional)
+- Node.js 18+, Express 4, MongoDB + Mongoose, JWT authentication, Socket.IO, Multer, Featherless AI (Gemma 27B Vision)
 
 ---
 
@@ -121,6 +116,27 @@
 ---
 
 ## Detailed Feature Breakdowns
+
+### Workforce Assignment & Verification
+
+Route: `/gov-work`  
+Access: Government role only
+
+The **Workforce Command Center** bridges the gap between digital reports and physical repairs.
+
+| Phase                 | System Action                                                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Assignment**        | Government selects an unassigned ticket and points it to a specific maintenance crew member.                                              |
+| **AI Strategy**       | Upon assignment, the AI analyzes the issue photo and generates a 4-step technical **Maintenance Strategy** specifically for that problem.  |
+| **Execution**         | The ticket status transitions to `IN-PROGRESS`. Crew members execute the AI work plan in the field.                                        |
+| **Resolution**        | Crew uploads a "Resolution Photo". The AI compares the *Before* and *After* images to verify if the infrastructure issue is truly fixed.   |
+| **Verification**      | If verified, the issue is marked `RESOLVED`. Government can override and manually confirm resolutions via the dashboard.                   |
+
+**Key API endpoints:**
+- `POST /api/issues/:id/assign` → Assignment + AI plan generation
+- `POST /api/issues/:id/resolve` → Resolution + AI verification
+
+---
 
 ### Citizen Dashboard — My Reports Dashboard
 
