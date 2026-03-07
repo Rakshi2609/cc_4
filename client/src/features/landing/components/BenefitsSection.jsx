@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Container, Grid2 as Grid, Paper, Stack } from '@mui/material';
+import { Box, Typography, Container, Grid, Paper, Stack } from '@mui/material';
 import { Camera, MapPin, BarChart3, Bell, Shield, Users, Clock, Globe } from 'lucide-react';
 
 const benefitCards = [
