@@ -5,7 +5,7 @@ import {
     Wallet, TrendingDown, TrendingUp, AlertCircle,
     ArrowLeft, RefreshCw, Layers, PieChart,
     ArrowRight, ShieldAlert, CheckCircle2, DollarSign,
-    Save, Edit3, X, Zap, Droplets, Car, Activity, Trash2, Wifi
+    Save, Edit3, X, Zap, Droplets, Car, Activity, Trash2, Wifi, Sparkles
 } from 'lucide-react';
 
 const SECTOR_ICONS = {
@@ -23,8 +23,8 @@ export default function GovBudget() {
     const [aiRecommendations, setAiRecommendations] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-    const [editData, setEditData] = useState({}); // { wardId: { sector: budget } }
-    const [totalCityBudget, setTotalCityBudget] = useState(1500000); // Fixed pool for example
+    const [editData, setEditData] = useState({});
+    const [totalCityBudget, setTotalCityBudget] = useState(1500000);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -36,7 +36,6 @@ export default function GovBudget() {
             setWards(wardsRes.data);
             setAiRecommendations(aiRes.data);
 
-            // Initialize edit state
             const initialEdit = {};
             wardsRes.data.forEach(w => {
                 initialEdit[w._id] = { ...w.resources };
@@ -88,8 +87,8 @@ export default function GovBudget() {
 
     if (loading && wards.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-                <div className="mono text-xs animate-pulse tracking-widest text-gray-400">SYNCING_FISCAL_DATA...</div>
+            <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-mono text-xs text-slate-400 animate-pulse">
+                SYNCING FISCAL ALLOCATION TELEMETRY...
             </div>
         );
     }
@@ -98,44 +97,49 @@ export default function GovBudget() {
     const remaining = totalCityBudget - currentAllocated;
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
+        <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-30 shadow-sm">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="bg-white border-b border-slate-200/90 px-6 py-4 sticky top-0 z-30 shadow-sm">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <button onClick={() => navigate('/gov-dashboard')} className="p-1.5 rounded-sm hover:bg-gray-100 transition-colors">
-                            <ArrowLeft size={16} className="text-gray-500" />
+                        <button
+                            onClick={() => navigate('/gov-dashboard')}
+                            className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-600 cursor-pointer"
+                        >
+                            <ArrowLeft size={18} />
                         </button>
-                        <div className="w-8 h-8 bg-emerald-600 rounded-sm flex items-center justify-center">
-                            <Wallet size={14} className="text-white" />
+                        <div className="w-9 h-9 bg-gradient-to-tr from-[#ea580c] to-[#f97316] rounded-xl flex items-center justify-center text-white shadow-md shadow-orange-500/25">
+                            <Wallet size={18} />
                         </div>
                         <div>
-                            <h1 className="text-lg font-black text-gray-900 tracking-tighter uppercase">Fiscal Command Center</h1>
-                            <p className="mono text-[10px] text-gray-400 tracking-widest uppercase">Smart Resource Planning & AI-Guided Allocation</p>
+                            <h1 className="text-lg font-extrabold text-[#0F172A] tracking-tight">Fiscal Command Center</h1>
+                            <p className="text-xs text-slate-500">Smart Resource Planning &amp; AI-Guided Ward Allocation</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 self-start sm:self-auto">
                         {!isEditing ? (
                             <button
                                 onClick={() => setIsEditing(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-sm mono text-[10px] font-bold hover:bg-black transition-all"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/25 transition-all cursor-pointer"
                             >
-                                <Edit3 size={12} /> ENTER ALLOCATION MODE
+                                <Edit3 size={14} />
+                                <span>Enter Allocation Mode</span>
                             </button>
                         ) : (
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => { setIsEditing(false); fetchData(); }}
-                                    className="px-4 py-2 bg-white border border-gray-200 text-gray-500 rounded-sm mono text-[10px] font-bold hover:bg-gray-50"
+                                    className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 cursor-pointer"
                                 >
-                                    CANCEL
+                                    Cancel
                                 </button>
                                 <button
                                     onClick={handleSaveAll}
-                                    className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-sm mono text-[10px] font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-500/20"
+                                    className="flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 shadow-md shadow-emerald-500/25 cursor-pointer"
                                 >
-                                    <Save size={12} /> COMMIT CHANGES
+                                    <Save size={14} />
+                                    <span>Commit Budgets</span>
                                 </button>
                             </div>
                         )}
@@ -143,84 +147,87 @@ export default function GovBudget() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
                 {/* Budget Summary Bar */}
-                <div className={`bg-gray-900 text-white rounded-sm p-6 shadow-2xl transition-all ${isEditing ? 'ring-2 ring-emerald-500 animate-pulse' : ''}`}>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className={`bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-sm transition-all ${isEditing ? 'ring-2 ring-orange-500 shadow-lg' : ''}`}>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div>
-                            <p className="mono text-[10px] text-gray-500 uppercase tracking-widest mb-1">Total City Pool</p>
-                            <h2 className="text-3xl font-black mono tracking-tighter">₹ {(totalCityBudget / 100000).toFixed(1)} Cr</h2>
+                            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Municipal Pool</p>
+                            <h2 className="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-[#0F172A]">
+                                ₹ {(totalCityBudget / 100000).toFixed(1)} Cr
+                            </h2>
                         </div>
                         <div>
-                            <p className="mono text-[10px] text-gray-500 uppercase tracking-widest mb-1">Allocated Funds</p>
-                            <h2 className="text-3xl font-black mono tracking-tighter text-emerald-400">₹ {(currentAllocated / 100000).toFixed(2)} Cr</h2>
+                            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Allocated Funds</p>
+                            <h2 className="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-emerald-600">
+                                ₹ {(currentAllocated / 100000).toFixed(2)} Cr
+                            </h2>
                         </div>
                         <div>
-                            <p className="mono text-[10px] text-gray-500 uppercase tracking-widest mb-1">Remaining Balance</p>
-                            <h2 className={`text-3xl font-black mono tracking-tighter ${remaining < 0 ? 'text-red-500' : 'text-blue-400'}`}>
+                            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Remaining Balance</p>
+                            <h2 className={`text-3xl sm:text-4xl font-extrabold font-mono tracking-tight ${remaining < 0 ? 'text-rose-600' : 'text-orange-600'}`}>
                                 ₹ {(remaining / 100000).toFixed(2)} Cr
                             </h2>
                         </div>
                     </div>
-                    <div className="mt-6 h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
+
+                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div
-                            className={`h-full transition-all duration-1000 ${remaining < 0 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                            className={`h-full transition-all duration-1000 ${remaining < 0 ? 'bg-rose-500' : 'bg-[#ea580c]'}`}
                             style={{ width: `${Math.min(100, (currentAllocated / totalCityBudget) * 100)}%` }}
                         />
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    {/* Wards List with Sector Budgets */}
+                    {/* Wards List with Sector Budgets (3 cols) */}
                     <div className="lg:col-span-3 space-y-4">
                         {wards.map((ward) => (
-                            <div key={ward._id} className="bg-white border border-gray-200 rounded-sm p-6 hover:shadow-md transition-all group">
-                                <div className="flex items-center justify-between mb-6 border-b border-gray-50 pb-4">
+                            <div key={ward._id} className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all">
+                                <div className="flex items-center justify-between mb-5 border-b border-slate-100 pb-3">
                                     <div className="flex items-center gap-3">
-                                        <span className="px-2 py-0.5 bg-gray-900 text-white mono text-[10px] font-bold rounded-sm uppercase">{ward.wardId}</span>
-                                        <h3 className="font-black text-gray-900 uppercase tracking-tight">{ward.name}</h3>
-                                        <span className="mono text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-sm">{ward.zone}</span>
+                                        <span className="px-2.5 py-0.5 bg-[#0F172A] text-white text-[10px] font-bold font-mono rounded-full uppercase">{ward.wardId}</span>
+                                        <h3 className="font-extrabold text-[#0F172A]">{ward.name}</h3>
+                                        <span className="text-[10px] font-bold text-orange-700 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">{ward.zone}</span>
                                     </div>
                                     <div className="text-right">
-                                        <p className="mono text-[9px] text-gray-400 uppercase">Ward Total</p>
-                                        <p className="font-bold text-gray-900 mono">₹ {(Object.values(editData[ward._id] || {}).reduce((a, b) => a + (b.budget || 0), 0) / 1000).toFixed(1)}k</p>
+                                        <p className="text-[10px] font-bold uppercase text-slate-400">Ward Allocated</p>
+                                        <p className="font-bold text-slate-900 font-mono">₹ {(Object.values(editData[ward._id] || {}).reduce((a, b) => a + (b.budget || 0), 0) / 1000).toFixed(1)}k</p>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                                     {Object.keys(ward.resources).map((sector) => {
                                         const Icon = SECTOR_ICONS[sector] || Activity;
                                         const budgetValue = editData[ward._id]?.[sector]?.budget || 0;
                                         const utilization = ward.resources[sector].utilization;
 
                                         return (
-                                            <div key={sector} className="space-y-3">
+                                            <div key={sector} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-1.5 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all">
-                                                        <Icon size={12} className="text-gray-400" />
-                                                        <span className="mono text-[9px] font-black text-gray-500 uppercase">{sector}</span>
+                                                    <div className="flex items-center gap-1 text-slate-600">
+                                                        <Icon size={13} className="text-orange-600" />
+                                                        <span className="text-[10px] font-bold uppercase">{sector}</span>
                                                     </div>
-                                                    <span className={`mono text-[8px] font-bold ${utilization > 80 ? 'text-red-500' : 'text-emerald-500'}`}>
-                                                        {Math.round(utilization)}% LOAD
-                                                    </span>
+                                                </div>
+
+                                                <div className="text-[10px] font-mono font-bold text-slate-500">
+                                                    Load: <span className={utilization > 80 ? 'text-rose-600' : 'text-emerald-600'}>{Math.round(utilization)}%</span>
                                                 </div>
 
                                                 {isEditing ? (
-                                                    <div className="space-y-1">
-                                                        <input
-                                                            type="number"
-                                                            value={budgetValue}
-                                                            onChange={(e) => handleBudgetChange(ward._id, sector, e.target.value)}
-                                                            className="w-full px-2 py-1 bg-emerald-50 border border-emerald-100 rounded-sm mono text-[10px] font-bold text-emerald-900 focus:bg-white focus:border-emerald-500 outline-none"
-                                                        />
-                                                        <p className="text-[8px] mono text-gray-400 text-right uppercase">Set Budget</p>
-                                                    </div>
+                                                    <input
+                                                        type="number"
+                                                        value={budgetValue}
+                                                        onChange={(e) => handleBudgetChange(ward._id, sector, e.target.value)}
+                                                        className="w-full px-2 py-1 bg-white border border-orange-300 rounded-lg font-mono text-xs font-bold text-orange-950 focus:border-orange-500 outline-none"
+                                                    />
                                                 ) : (
-                                                    <div className="space-y-1">
-                                                        <p className="text-sm font-black text-gray-900 mono">₹{(budgetValue / 1000).toFixed(0)}k</p>
-                                                        <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
-                                                            <div className="h-full bg-blue-500" style={{ width: `${Math.min(100, (budgetValue / 200000) * 100)}%` }} />
+                                                    <div>
+                                                        <p className="text-sm font-extrabold text-[#0F172A] font-mono">₹{(budgetValue / 1000).toFixed(0)}k</p>
+                                                        <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden mt-1">
+                                                            <div className="h-full bg-orange-500" style={{ width: `${Math.min(100, (budgetValue / 200000) * 100)}%` }} />
                                                         </div>
                                                     </div>
                                                 )}
@@ -232,49 +239,43 @@ export default function GovBudget() {
                         ))}
                     </div>
 
-                    {/* AI Support Panel */}
+                    {/* AI Guidance Sidebar (1 col) */}
                     <div className="space-y-6">
-                        <div className="bg-indigo-900 rounded-sm p-5 text-white shadow-xl relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-bl-full flex items-center justify-center">
-                                <ShieldAlert size={20} className="text-indigo-400/50" />
+                        <div className="bg-white border border-orange-200/90 rounded-3xl p-6 shadow-sm relative overflow-hidden">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Sparkles size={16} className="text-orange-600" />
+                                <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F172A]">Mistral Fiscal Advisory</h3>
                             </div>
-                            <h3 className="text-xs font-black uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <CheckCircle2 size={14} className="text-emerald-400" /> AI Recommendations
-                            </h3>
-                            <div className="space-y-4">
+
+                            <div className="space-y-3">
                                 {aiRecommendations?.budgetAdvice?.recommendations?.map((rec, i) => (
-                                    <div key={i} className="bg-white/5 border border-white/10 p-3 rounded-sm hover:bg-white/10 transition-colors cursor-pointer"
+                                    <div
+                                        key={i}
+                                        className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl cursor-pointer hover:border-orange-300 transition-colors"
                                         onClick={() => {
                                             if (isEditing) {
                                                 const ward = wards.find(w => w.name === rec.ward);
                                                 if (ward) handleBudgetChange(ward._id, rec.sector, (editData[ward._id][rec.sector].budget || 0) * 1.25);
                                             }
-                                        }}>
+                                        }}
+                                    >
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="mono text-[8px] bg-indigo-500 px-1 rounded-sm uppercase">{rec.sector}</span>
-                                            <span className="text-[10px] font-bold text-indigo-200">{rec.ward}</span>
+                                            <span className="text-[9px] font-mono font-bold bg-orange-100 text-orange-800 px-2 py-0.5 rounded-md uppercase">{rec.sector}</span>
+                                            <span className="text-xs font-bold text-slate-800">{rec.ward}</span>
                                         </div>
-                                        <p className="text-[10px] text-gray-300 leading-relaxed italic">"{rec.recommendation}"</p>
+                                        <p className="text-xs text-slate-600 leading-relaxed italic mt-1.5">"{rec.recommendation}"</p>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="bg-white border border-gray-200 rounded-sm p-5">
-                            <h3 className="text-xs font-black uppercase tracking-widest mb-4 text-gray-900">Allocation Tip</h3>
-                            <div className="space-y-3">
-                                <div className="flex gap-3">
-                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1" />
-                                    <p className="text-[10px] text-gray-500 leading-relaxed uppercase">Higher budgets improve <span className="font-bold text-gray-900">Infrastructure Resilience</span> reducing failure rate.</p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1" />
-                                    <p className="text-[10px] text-gray-500 leading-relaxed uppercase">Slum zones require <span className="font-bold text-gray-900">2x Baseline</span> budget for stable sewage health.</p>
-                                </div>
-                            </div>
+                        <div className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-sm text-xs text-slate-600 space-y-3">
+                            <h4 className="font-bold text-[#0F172A] uppercase tracking-wider text-xs">Allocation Best Practices</h4>
+                            <p className="leading-relaxed">Higher capital buffers allocated to power grids significantly lower transformer overheating rates during peak summer months.</p>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     );
