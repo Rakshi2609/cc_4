@@ -5,7 +5,7 @@ import {
     Activity, Zap, Droplets, Car, ShieldAlert, Wifi,
     Trash2, Globe, AlertTriangle, TrendingUp, Info,
     Play, Square, ChevronRight, ChevronLeft, Map as MapIcon,
-    Flame, Wind, CloudRain, Zap as PowerIcon
+    Flame, Wind, CloudRain, Zap as PowerIcon, Sparkles, RefreshCw
 } from 'lucide-react';
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
 import {
@@ -16,16 +16,16 @@ import 'leaflet/dist/leaflet.css';
 
 // Reusable Stat Component
 const ResourceStat = ({ icon: Icon, label, value, color, detail }) => (
-    <div className="bg-white border border-gray-200 p-3 rounded-sm flex items-center gap-3">
-        <div className={`p-2 rounded-sm ${color.bg} ${color.text}`}>
+    <div className="bg-white border border-slate-200/90 p-3.5 rounded-2xl flex items-center gap-3 shadow-sm">
+        <div className={`p-2 rounded-xl border ${color.bg} ${color.text}`}>
             <Icon size={16} />
         </div>
         <div className="min-w-0">
             <div className="flex items-baseline gap-2">
-                <span className="text-lg font-black text-gray-900 mono leading-none">{Math.round(value)}%</span>
-                <span className="mono text-[8px] text-gray-400 uppercase tracking-tighter">{label}</span>
+                <span className="text-base font-extrabold text-[#0F172A] font-mono leading-none">{Math.round(value)}%</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
             </div>
-            <div className="h-1 w-24 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
+            <div className="h-1.5 w-24 bg-slate-100 rounded-full mt-2 overflow-hidden">
                 <div className={`h-full ${color.bar} transition-all duration-1000`} style={{ width: `${value}%` }} />
             </div>
         </div>
@@ -67,7 +67,6 @@ export default function LiveDashboard() {
                         const current = updatedWards.find(w => w._id === selectedWard._id);
                         if (current) setSelectedWard(current);
                     }
-                    // Add to local sparkline graph
                     const newPoint = {
                         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                         avgHealth: updatedWards.reduce((acc, w) => acc + w.currentHealthIndex, 0) / updatedWards.length
@@ -101,10 +100,9 @@ export default function LiveDashboard() {
         try {
             setIsReplaying(true);
             const end = new Date();
-            const start = new Date(end.getTime() - 15 * 60000); // Last 15 mins
+            const start = new Date(end.getTime() - 15 * 60000);
             const res = await api.get(`/sim/replay?start=${start.toISOString()}&end=${end.toISOString()}`);
 
-            // Group readings by timestamp to simulate "frames"
             const grouped = res.data.reduce((acc, r) => {
                 const time = new Date(r.timestamp).getTime();
                 if (!acc[time]) acc[time] = [];
@@ -124,7 +122,6 @@ export default function LiveDashboard() {
         let timer;
         if (isReplaying && replayIndex < replayFrames.length) {
             timer = setTimeout(() => {
-                // Here we would update the ghost-UI with replay data
                 setReplayIndex(prev => prev + 1);
             }, 500);
         } else if (replayIndex >= replayFrames.length) {
@@ -134,113 +131,127 @@ export default function LiveDashboard() {
     }, [isReplaying, replayIndex, replayFrames]);
 
     const getHealthColor = (score) => {
-        if (score > 80) return { dot: '#10b981', bg: 'bg-green-50', text: 'text-green-600', bar: 'bg-green-500', label: 'OPTIMAL' };
-        if (score > 60) return { dot: '#f59e0b', bg: 'bg-amber-50', text: 'text-amber-600', bar: 'bg-amber-500', label: 'WARNING' };
-        if (score > 40) return { dot: '#ef4444', bg: 'bg-red-50', text: 'text-red-600', bar: 'bg-red-500', label: 'CRITICAL' };
-        return { dot: '#7f1d1d', bg: 'bg-red-100', text: 'text-red-900', bar: 'bg-red-800', label: 'OVERLOAD' };
+        if (score > 80) return { dot: '#10b981', bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700', bar: 'bg-emerald-500', label: 'OPTIMAL' };
+        if (score > 60) return { dot: '#f59e0b', bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', bar: 'bg-amber-500', label: 'WARNING' };
+        if (score > 40) return { dot: '#ef4444', bg: 'bg-rose-50 border-rose-200', text: 'text-rose-700', bar: 'bg-rose-500', label: 'CRITICAL' };
+        return { dot: '#7f1d1d', bg: 'bg-red-100 border-red-300', text: 'text-red-950', bar: 'bg-red-800', label: 'OVERLOAD' };
     };
 
-    if (loading) return <div className="p-8 mono text-xs animate-pulse">BOOTING KAVACH ENGINE...</div>;
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-mono text-xs text-slate-400 animate-pulse">
+                BOOTING SMART CITY DIGITAL TWIN ENGINE...
+            </div>
+        );
+    }
 
     return (
-        <div className="flex flex-col h-screen bg-gray-50 overflow-hidden font-sans">
+        <div className="flex flex-col h-screen bg-[#F8FAFC] overflow-hidden font-sans">
 
             {/* City Status Bar */}
-            <div className="bg-black text-white px-6 py-3 flex items-center justify-between z-20 shadow-xl border-b border-gray-800">
-                <div className="flex items-center gap-6">
+            <div className="bg-white border-b border-slate-200/90 px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-20 shadow-sm">
+                <div className="flex items-center gap-6 flex-wrap">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-600 rounded-sm flex items-center justify-center animate-pulse">
-                            <ShieldAlert size={18} />
+                        <div className="w-8 h-8 bg-gradient-to-tr from-[#ea580c] to-[#f97316] rounded-xl flex items-center justify-center text-white shadow-md shadow-orange-500/25">
+                            <ShieldAlert size={16} />
                         </div>
                         <div>
-                            <h1 className="text-sm font-black mono tracking-tighter uppercase">Kavach-City AI <span className="text-blue-500">v2.1</span></h1>
-                            <p className="text-[10px] mono text-gray-400">ACTIVE INFRASTRUCTURE TWIN</p>
+                            <h1 className="text-sm font-extrabold text-[#0F172A] tracking-tight">Kavach-City AI <span className="text-orange-600 font-mono">v2.1</span></h1>
+                            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Active Smart Twin Telemetry</p>
                         </div>
                     </div>
 
-                    <div className="h-8 w-px bg-gray-800" />
+                    <div className="h-6 w-px bg-slate-200 hidden sm:block" />
 
-                    <div className="flex items-center gap-4">
-                        <div className="text-center">
-                            <p className="text-[8px] mono text-gray-500 uppercase">City Health Index</p>
-                            <p className={`text-xl font-black mono ${getHealthColor(cityHealth.score).text}`}>{cityHealth.score}%</p>
+                    <div className="flex items-center gap-3">
+                        <div className="text-left sm:text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-400">City Health Index</p>
+                            <p className={`text-lg font-extrabold font-mono ${getHealthColor(cityHealth.score).text}`}>{cityHealth.score}%</p>
                         </div>
-                        <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div className="w-24 sm:w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
                             <div className={`h-full ${getHealthColor(cityHealth.score).bar} transition-all duration-1000`} style={{ width: `${cityHealth.score}%` }} />
                         </div>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold mono border ${getHealthColor(cityHealth.score).text} ${getHealthColor(cityHealth.score).bg} border-current`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono border ${getHealthColor(cityHealth.score).text} ${getHealthColor(cityHealth.score).bg}`}>
                             {getHealthColor(cityHealth.score).label}
                         </span>
                     </div>
 
                     {cityHealth.activeDisaster && (
-                        <div className="bg-red-600/20 border border-red-500/50 px-3 py-1 rounded-sm flex items-center gap-2 animate-bounce">
-                            <AlertTriangle size={14} className="text-red-500" />
-                            <span className="mono text-[10px] font-black text-red-500 uppercase">DISASTER ACTIVE: {cityHealth.activeDisaster.type}</span>
+                        <div className="bg-rose-50 border border-rose-300 px-3 py-1 rounded-full flex items-center gap-2 animate-bounce">
+                            <AlertTriangle size={13} className="text-rose-600" />
+                            <span className="text-[10px] font-bold text-rose-700 uppercase">ACTIVE DISASTER: {cityHealth.activeDisaster.type}</span>
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className="text-right">
-                        <p className="text-[8px] mono text-gray-500 uppercase">Command Uptime</p>
-                        <p className="text-xs font-bold mono">00:45:12</p>
-                    </div>
+                <div className="flex items-center gap-3">
                     <button
                         onClick={() => triggerSimulationDisaster('None')}
-                        className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-sm mono text-[9px] font-bold transition-all border border-gray-700"
+                        className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all border border-slate-200 cursor-pointer"
                     >
-                        RESET SIM
+                        Reset Simulation
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                 {/* Sidebar Controls */}
-                <aside className="w-80 bg-white border-r border-gray-200 flex flex-col z-10 overflow-y-auto">
+                <aside className="w-full md:w-80 bg-white border-r border-slate-200/90 flex flex-col z-10 overflow-y-auto">
                     {/* Disaster Simulation */}
-                    <div className="p-4 border-b border-gray-100">
-                        <p className="mono text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Disaster Simulation</p>
+                    <div className="p-4 border-b border-slate-100">
+                        <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Simulation Scenarios</p>
                         <div className="grid grid-cols-2 gap-2">
-                            <button onClick={() => triggerSimulationDisaster('Power Outage')} className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-sm hover:border-red-500 group transition-all">
-                                <PowerIcon size={14} className="text-gray-400 group-hover:text-red-500" />
-                                <span className="mono text-[10px] font-bold text-gray-600 uppercase">Power Outage</span>
+                            <button
+                                onClick={() => triggerSimulationDisaster('Power Outage')}
+                                className="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl hover:border-orange-500 hover:bg-orange-50/50 group transition-all cursor-pointer text-left"
+                            >
+                                <PowerIcon size={14} className="text-slate-400 group-hover:text-orange-600" />
+                                <span className="text-[11px] font-bold text-slate-700">Power Outage</span>
                             </button>
-                            <button onClick={() => triggerSimulationDisaster('Flood')} className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-sm hover:border-blue-500 group transition-all">
-                                <CloudRain size={14} className="text-gray-400 group-hover:text-blue-500" />
-                                <span className="mono text-[10px] font-bold text-gray-600 uppercase">Flooding</span>
+                            <button
+                                onClick={() => triggerSimulationDisaster('Flood')}
+                                className="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/50 group transition-all cursor-pointer text-left"
+                            >
+                                <CloudRain size={14} className="text-slate-400 group-hover:text-blue-600" />
+                                <span className="text-[11px] font-bold text-slate-700">Flooding</span>
                             </button>
-                            <button onClick={() => triggerSimulationDisaster('Traffic Jam')} className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-sm hover:border-amber-500 group transition-all">
-                                <Car size={14} className="text-gray-400 group-hover:text-amber-500" />
-                                <span className="mono text-[10px] font-bold text-gray-600 uppercase">Traffic Jam</span>
+                            <button
+                                onClick={() => triggerSimulationDisaster('Traffic Jam')}
+                                className="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl hover:border-amber-500 hover:bg-amber-50/50 group transition-all cursor-pointer text-left"
+                            >
+                                <Car size={14} className="text-slate-400 group-hover:text-amber-600" />
+                                <span className="text-[11px] font-bold text-slate-700">Traffic Jam</span>
                             </button>
-                            <button onClick={() => triggerSimulationDisaster('None')} className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-sm hover:border-green-500 group transition-all">
-                                <Play size={14} className="text-gray-400 group-hover:text-green-500" />
-                                <span className="mono text-[10px] font-bold text-gray-600 uppercase">Normal Ops</span>
+                            <button
+                                onClick={() => triggerSimulationDisaster('None')}
+                                className="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50/50 group transition-all cursor-pointer text-left"
+                            >
+                                <Play size={14} className="text-slate-400 group-hover:text-emerald-600" />
+                                <span className="text-[11px] font-bold text-slate-700">Normal Ops</span>
                             </button>
                         </div>
                     </div>
 
                     {/* Historical Replay */}
-                    <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-                        <p className="mono text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Historical Replay</p>
-                        <div className="flex flex-col gap-3">
-                            <div className="flex items-center justify-between bg-white border border-gray-200 p-2 rounded-sm">
-                                <span className="mono text-[10px] text-gray-500 uppercase">Playback</span>
-                                <div className="flex gap-2">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                        <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Historical Replay</p>
+                        <div className="flex flex-col gap-2.5">
+                            <div className="flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-xl">
+                                <span className="text-xs font-semibold text-slate-600">Telemetry Stream</span>
+                                <div>
                                     {!isReplaying ? (
-                                        <button onClick={startReplay} className="p-1 px-2 bg-blue-600 text-white rounded-sm mono text-[9px] font-black uppercase">START</button>
+                                        <button onClick={startReplay} className="px-3 py-1 bg-[#ea580c] hover:bg-[#c2410c] text-white rounded-lg text-xs font-bold cursor-pointer">START</button>
                                     ) : (
-                                        <button onClick={() => setIsReplaying(false)} className="p-1 px-2 bg-red-600 text-white rounded-sm mono text-[9px] font-black uppercase flex items-center gap-1"><Square size={10} /> STOP</button>
+                                        <button onClick={() => setIsReplaying(false)} className="px-3 py-1 bg-rose-600 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"><Square size={10} /> STOP</button>
                                     )}
                                 </div>
                             </div>
                             {isReplaying && (
-                                <div className="space-y-2">
-                                    <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${(replayIndex / replayFrames.length) * 100}%` }} />
+                                <div className="space-y-1">
+                                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                        <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${(replayIndex / replayFrames.length) * 100}%` }} />
                                     </div>
-                                    <p className="mono text-[9px] text-center text-blue-600 font-bold uppercase animate-pulse">Streaming Frame {replayIndex} / {replayFrames.length}</p>
+                                    <p className="text-[10px] text-center text-orange-600 font-mono font-bold animate-pulse">Frame {replayIndex} / {replayFrames.length}</p>
                                 </div>
                             )}
                         </div>
@@ -248,29 +259,34 @@ export default function LiveDashboard() {
 
                     {/* Ward Selection List */}
                     <div className="flex-1 overflow-y-auto">
-                        <div className="p-4 bg-white sticky top-0 border-b border-gray-100 z-10">
-                            <p className="mono text-[10px] font-black text-gray-400 uppercase tracking-widest">Wards Infrastructure (10)</p>
+                        <div className="p-3.5 bg-white sticky top-0 border-b border-slate-100 z-10 flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">City Wards ({wards.length})</span>
                         </div>
-                        <div className="divide-y divide-gray-50">
-                            {wards.map(ward => (
-                                <div
-                                    key={ward._id}
-                                    onClick={() => setSelectedWard(ward)}
-                                    className={`p-4 cursor-pointer transition-all border-l-4 ${selectedWard?._id === ward._id ? 'bg-blue-50/50 border-blue-600' : 'hover:bg-gray-50 border-transparent'}`}
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-black text-gray-900 mono uppercase tracking-tighter">{ward.name}</span>
-                                        <span className={`text-[10px] font-black mono ${getHealthColor(ward.currentHealthIndex).text}`}>
-                                            {Math.round(ward.currentHealthIndex)}%
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="divide-y divide-slate-100">
+                            {wards.map(ward => {
+                                const isSelected = selectedWard?._id === ward._id;
+                                return (
+                                    <div
+                                        key={ward._id}
+                                        onClick={() => setSelectedWard(ward)}
+                                        className={`p-3.5 cursor-pointer transition-all border-l-4 ${
+                                            isSelected
+                                                ? 'bg-orange-50/70 border-orange-500'
+                                                : 'hover:bg-slate-50 border-transparent'
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <span className="text-xs font-bold text-[#0F172A] uppercase">{ward.name}</span>
+                                            <span className={`text-[10px] font-bold font-mono ${getHealthColor(ward.currentHealthIndex).text}`}>
+                                                {Math.round(ward.currentHealthIndex)}%
+                                            </span>
+                                        </div>
+                                        <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
                                             <div className={`h-full ${getHealthColor(ward.currentHealthIndex).bar}`} style={{ width: `${ward.currentHealthIndex}%` }} />
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </aside>
@@ -280,48 +296,47 @@ export default function LiveDashboard() {
 
                     {/* Top Panel - Selected Ward Details */}
                     {selectedWard && (
-                        <div className="bg-white border-b border-gray-200 p-6 z-10">
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 border border-gray-200 rounded-sm flex items-center justify-center">
-                                        <MapIcon size={24} className="text-gray-400" />
+                        <div className="bg-white border-b border-slate-200/90 p-5 sm:p-6 z-10 shadow-sm">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-orange-50 border border-orange-200 text-orange-600 rounded-xl flex items-center justify-center">
+                                        <MapIcon size={20} />
                                     </div>
                                     <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[9px] font-black mono uppercase rounded-sm">{selectedWard.wardId}</span>
-                                            <span className="mono text-[10px] text-gray-400 font-bold uppercase tracking-widest">{selectedWard.zone} Zone</span>
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <span className="px-2 py-0.5 bg-[#0F172A] text-white text-[9px] font-bold font-mono rounded-full uppercase">{selectedWard.wardId}</span>
+                                            <span className="text-xs font-bold text-orange-600 uppercase">{selectedWard.zone} Zone</span>
                                         </div>
-                                        <h2 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">{selectedWard.name}</h2>
+                                        <h2 className="text-xl font-extrabold text-[#0F172A] tracking-tight">{selectedWard.name}</h2>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-4">
-                                    <div className="text-right">
-                                        <p className="mono text-[10px] text-gray-400 uppercase">Population</p>
-                                        <p className="text-lg font-black mono text-gray-900">{selectedWard.population.toLocaleString()}</p>
+                                <div className="flex items-center gap-4 text-xs">
+                                    <div>
+                                        <p className="text-[10px] font-bold uppercase text-slate-400">Population</p>
+                                        <p className="text-base font-extrabold font-mono text-slate-900">{selectedWard.population.toLocaleString()}</p>
                                     </div>
-                                    <div className="h-10 w-px bg-gray-200" />
-                                    <div className="text-right">
-                                        <p className="mono text-[10px] text-gray-400 uppercase">Ward Status</p>
-                                        <p className={`text-lg font-black mono ${getHealthColor(selectedWard.currentHealthIndex).text}`}>{getHealthColor(selectedWard.currentHealthIndex).label}</p>
+                                    <div className="h-8 w-px bg-slate-200" />
+                                    <div>
+                                        <p className="text-[10px] font-bold uppercase text-slate-400">Ward Status</p>
+                                        <p className={`text-base font-extrabold font-mono ${getHealthColor(selectedWard.currentHealthIndex).text}`}>{getHealthColor(selectedWard.currentHealthIndex).label}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                                <ResourceStat icon={PowerIcon} label="POWER" value={selectedWard.resources.power.utilization} color={{ bg: 'bg-amber-50', text: 'text-amber-600', bar: 'bg-amber-400' }} />
-                                <ResourceStat icon={Droplets} label="WATER" value={selectedWard.resources.water.utilization} color={{ bg: 'bg-blue-50', text: 'text-blue-600', bar: 'bg-blue-400' }} />
-                                <ResourceStat icon={Car} label="TRAFFIC" value={selectedWard.resources.traffic.utilization} color={{ bg: 'bg-emerald-50', text: 'text-emerald-600', bar: 'bg-emerald-400' }} />
-                                <ResourceStat icon={Activity} label="SEWAGE" value={selectedWard.resources.sewage.utilization} color={{ bg: 'bg-indigo-50', text: 'text-indigo-600', bar: 'bg-indigo-400' }} />
-                                <ResourceStat icon={Trash2} label="WASTE" value={selectedWard.resources.waste.utilization} color={{ bg: 'bg-orange-50', text: 'text-orange-600', bar: 'bg-orange-400' }} />
-                                <ResourceStat icon={Wifi} label="INTERNET" value={selectedWard.resources.internet.utilization} color={{ bg: 'bg-purple-50', text: 'text-purple-600', bar: 'bg-purple-400' }} />
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                                <ResourceStat icon={PowerIcon} label="POWER" value={selectedWard.resources.power.utilization} color={{ bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', bar: 'bg-amber-500' }} />
+                                <ResourceStat icon={Droplets} label="WATER" value={selectedWard.resources.water.utilization} color={{ bg: 'bg-blue-50 border-blue-200', text: 'text-blue-700', bar: 'bg-blue-500' }} />
+                                <ResourceStat icon={Car} label="TRAFFIC" value={selectedWard.resources.traffic.utilization} color={{ bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700', bar: 'bg-emerald-500' }} />
+                                <ResourceStat icon={Activity} label="SEWAGE" value={selectedWard.resources.sewage.utilization} color={{ bg: 'bg-indigo-50 border-indigo-200', text: 'text-indigo-700', bar: 'bg-indigo-500' }} />
+                                <ResourceStat icon={Trash2} label="WASTE" value={selectedWard.resources.waste.utilization} color={{ bg: 'bg-orange-50 border-orange-200', text: 'text-orange-700', bar: 'bg-orange-500' }} />
+                                <ResourceStat icon={Wifi} label="INTERNET" value={selectedWard.resources.internet.utilization} color={{ bg: 'bg-purple-50 border-purple-200', text: 'text-purple-700', bar: 'bg-purple-500' }} />
                             </div>
                         </div>
                     )}
 
-                    {/* Map & Visualization */}
-                    <div className="flex-1 relative flex flex-col bg-gray-200">
-                        {/* Real-time Map overlay */}
+                    {/* Map & Visualization Viewport */}
+                    <div className="flex-1 relative flex flex-col bg-slate-100">
                         <div className="absolute inset-0 z-0">
                             <MapContainer
                                 center={[12.9716, 77.5946]}
@@ -337,22 +352,22 @@ export default function LiveDashboard() {
                                     <CircleMarker
                                         key={ward._id}
                                         center={ward.location.coordinates.slice().reverse()}
-                                        radius={12 + (100 - ward.currentHealthIndex) / 10}
+                                        radius={14 + (100 - ward.currentHealthIndex) / 8}
                                         pathOptions={{
                                             fillColor: getHealthColor(ward.currentHealthIndex).dot,
                                             color: 'white',
-                                            weight: 2,
-                                            fillOpacity: 0.8
+                                            weight: 3,
+                                            fillOpacity: 0.85
                                         }}
                                         eventHandlers={{
                                             click: () => setSelectedWard(ward)
                                         }}
                                     >
                                         <Popup>
-                                            <div className="mono p-1">
-                                                <p className="font-bold border-b mb-1 uppercase">{ward.name}</p>
-                                                <p className="text-[10px]">HEALTH: {Math.round(ward.currentHealthIndex)}%</p>
-                                                <p className="text-[10px]">TRAFFIC: {Math.round(ward.resources.traffic.utilization)}%</p>
+                                            <div className="p-1 font-sans">
+                                                <p className="font-bold text-xs border-b border-slate-200 pb-1 mb-1">{ward.name}</p>
+                                                <p className="text-[11px] font-mono text-slate-700">Health: {Math.round(ward.currentHealthIndex)}%</p>
+                                                <p className="text-[11px] font-mono text-slate-700">Traffic: {Math.round(ward.resources.traffic.utilization)}%</p>
                                             </div>
                                         </Popup>
                                     </CircleMarker>
@@ -360,48 +375,40 @@ export default function LiveDashboard() {
                             </MapContainer>
                         </div>
 
-                        {/* Bottom Panel - Trend Analysis */}
-                        <div className="absolute bottom-6 left-6 right-6 h-48 bg-white/90 backdrop-blur-md border border-white/50 rounded-sm shadow-2xl overflow-hidden p-4 flex gap-6 z-10 transition-all hover:h-64 group">
+                        {/* Bottom Panel - Trend Analysis Overlay */}
+                        <div className="absolute bottom-5 left-5 right-5 h-44 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl p-4 flex gap-6 z-10 transition-all hover:h-56">
                             <div className="w-1/3 flex flex-col">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <TrendingUp size={14} className="text-blue-600" />
-                                    <span className="mono text-[10px] font-black text-gray-900 uppercase">Trend Analysis</span>
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <TrendingUp size={14} className="text-orange-600" />
+                                    <span className="text-xs font-bold uppercase text-slate-800">Telemetry Trends</span>
                                 </div>
-                                <div className="flex-1 bg-gray-50/50 rounded-sm p-3 relative overflow-hidden">
+                                <div className="flex-1 bg-slate-50 rounded-xl p-2 relative overflow-hidden">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={historicalData}>
                                             <defs>
                                                 <linearGradient id="colorHealth" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                                                    <stop offset="5%" stopColor="#ea580c" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#ea580c" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
-                                            <Area type="monotone" dataKey="avgHealth" stroke="#2563eb" fillOpacity={1} fill="url(#colorHealth)" />
+                                            <Area type="monotone" dataKey="avgHealth" stroke="#ea580c" strokeWidth={2} fillOpacity={1} fill="url(#colorHealth)" />
                                         </AreaChart>
                                     </ResponsiveContainer>
-                                    <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-black text-white text-[8px] mono rounded-sm">CITY AVG HEALTH</div>
                                 </div>
                             </div>
 
                             <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex items-center gap-2 mb-1.5">
                                     <Zap size={14} className="text-amber-500" />
-                                    <span className="mono text-[10px] font-black text-gray-900 uppercase">Sector Predicted Demand</span>
+                                    <span className="text-xs font-bold uppercase text-slate-800">Sector Predictive Demand (4H Horizon)</span>
                                 </div>
-                                <div className="grid grid-cols-2 h-full gap-4">
+                                <div className="grid grid-cols-2 h-full gap-3 pb-6">
                                     {['power', 'traffic'].map(res => (
-                                        <div key={res} className="bg-gray-50/50 p-3 rounded-sm border border-gray-100">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="mono text-[9px] text-gray-500 uppercase">{res} Forecast</span>
-                                                <span className="mono text-[9px] font-bold text-gray-900">NEXT 4H</span>
+                                        <div key={res} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 flex flex-col justify-between">
+                                            <span className="text-[10px] font-bold uppercase text-slate-500">{res} Forecast</span>
+                                            <div className="text-base font-extrabold font-mono text-slate-900">
+                                                {Math.round((selectedWard?.resources[res].utilization || 0) + (Math.random() * 8 - 4))}%
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="text-lg font-black mono text-gray-900 tracking-tighter">
-                                                    {Math.round((selectedWard?.resources[res].utilization || 0) + (Math.random() * 10 - 5))}%
-                                                </div>
-                                                {Math.random() > 0.5 ? <ChevronRight size={14} className="-rotate-45 text-red-500" /> : <ChevronRight size={14} className="rotate-45 text-green-500" />}
-                                            </div>
-                                            <p className="text-[8px] mono text-gray-400 uppercase mt-1">Simulated predictive vector based on moving average</p>
                                         </div>
                                     ))}
                                 </div>

@@ -18,6 +18,7 @@ import GovBudget from './pages/GovBudget'
 import WardManagement from './pages/WardManagement'
 import LiveDashboard from './pages/LiveDashboard'
 import GovWorkAssignment from './pages/GovWorkAssignment'
+import PWAInstallPrompt from './components/PWAInstallPrompt'
 import './App.css'
 
 // Route guard helpers
@@ -40,7 +41,7 @@ function GuestOnly({ children }) {
 
 function App() {
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen bg-[#F8FAFC] relative">
       <Navbar />
       <Routes>
         {/* Public */}
@@ -71,9 +72,11 @@ function App() {
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* Floating PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   )
 }
 
 export default App
-

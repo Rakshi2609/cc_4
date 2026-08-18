@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="pwaGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ea580c" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" fill="url(#pwaGrad192)" rx="48" />
+  <text x="80" y="122" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="#ffffff" text-anchor="middle" letter-spacing="-3">C</text>
+  <path d="M 130 82 L 130 106 M 118 94 L 142 94" stroke="#ffffff" stroke-width="12" stroke-linecap="round" />
+</svg>
