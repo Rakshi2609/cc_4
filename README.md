@@ -1,8 +1,8 @@
-# CivicPlus — Smart Civic Issue Reporting Platform
+# CivicPlus — AI-Powered Smart Cities Grievance Redressal & Infrastructure Command Platform
 
-> **Empower citizens. Empower government. Fix cities faster.**
+> **Empower citizens. Modernize municipal operations. Fix cities faster.**
 >
-> A production-ready civic issue reporting platform with smart geo-clustering, real-time notifications, transparent audit trails, and role-based dashboards for citizens and government officials.
+> A production-grade Civic Tech platform integrating **Mistral Vision AI**, **Smart Geo-Clustering**, **Kavach Digital Twin Live Telemetry**, **Fiscal Command Center**, and **Progressive Web App (PWA)** offline capabilities for Indian Smart Cities.
 
 <p align="center">
   <a href="https://drive.google.com/file/d/12bo_ga9FtjNNMZFZiPV3eXX3hUw3efBH/view?usp=sharing">
@@ -20,456 +20,309 @@
 
 ---
 
-## Quick Navigation
+## 📑 Table of Contents
 
-- [Key Features](#key-features)
-- [Workforce Management](#workforce-assignment--verification)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Environment Setup](#environment-setup)
-- [API Endpoints](#api-endpoints-quick-reference)
-- [Troubleshooting](#troubleshooting)
-- [Screenshots](#screenshots)
-- [Demo & Presentation](#demo--presentation)
-
----
-
-## Key Features
-
-| Feature                     | Description                                                                                   |
-| --------------------------- | --------------------------------------------------------------------------------------------- |
-| **Photo Reports**           | Citizens capture infrastructure issues with GPS location, category, and description           |
-| **AI Vision Verification**  | Automatic category detection and authenticity verification using Vision AI                    |
-| **Workforce Management**    | Assign maintenance crews to issues, generate AI technical work plans, and track progress      |
-| **Smart Geo-Clustering**    | Automatically groups similar reports within 100m radius into hotspots, eliminating duplicates |
-| **Resolution Verification** | AI-assisted Before/After photo comparison to ensure quality control on infrastructure repairs |
-| **Interactive Map**         | Live map visualization with custom markers, real-time upvotes, and cluster member details     |
-| **Real-Time Notifications** | WebSocket-powered instant updates on issue status changes via Socket.IO                       |
-| **Government Dashboards**   | Command centers for city-wide analytics, fiscal planning, and workforce control               |
-| **Priority Scoring**        | Issues ranked by urgency: cluster size, age, upvotes, and severity                            |
+- [Key Features](#-key-features)
+- [Progressive Web App (PWA)](#-progressive-web-app-pwa)
+- [Tech Stack](#-tech-stack)
+- [System Architecture](#-system-architecture)
+- [Command Modules & Detailed Workflows](#-command-modules--detailed-workflows)
+  - [1. Citizen Issue Reporting & Voice Radar](#1-citizen-issue-reporting--voice-radar)
+  - [2. Workforce Dispatch & AI Verification (`/gov-work`)](#2-workforce-dispatch--ai-verification-gov-work)
+  - [3. Fiscal Command Center (`/gov-budget`)](#3-fiscal-command-center-gov-budget)
+  - [4. City Intelligence Analytics (`/gov-analytics`)](#4-city-intelligence-analytics-gov-analytics)
+  - [5. Kavach Digital Twin Live Telemetry (`/gov-live`)](#5-kavach-digital-twin-live-telemetry-gov-live)
+- [Screenshots & Visual Gallery](#-screenshots--visual-gallery)
+- [Getting Started](#-getting-started)
+- [Environment Configuration](#-environment-configuration)
+- [API Reference](#-api-reference)
+- [Troubleshooting & FAQ](#-troubleshooting--faq)
 
 ---
 
-## Tech Stack
+## 🌟 Key Features
 
-### Frontend
-
-- React 18 + Vite, Tailwind CSS 4, React Router DOM 6, Axios, Socket.IO Client, React-Leaflet, Lucide React, react-compare-image
-
-### Backend
-
-- Node.js 18+, Express 4, MongoDB + Mongoose, JWT authentication, Socket.IO, Multer, Featherless AI (Gemma 27B Vision)
+| Capability | Technical Implementation | Description |
+| :--- | :--- | :--- |
+| **Instant AI Vision Audit** | Mistral Vision (`pixtral-12b-2409`) | Real-time classification, severity scoring (0–100%), and automatic fake/spam report rejection. |
+| **PWA Mobile First** | Workbox + Web Manifest | Standalone app experience on mobile & desktop, offline asset caching, and one-tap install banner. |
+| **Smart Geo-Clustering** | MongoDB 2dsphere GeoNear (100m) | Automatically consolidates duplicate citizen reports into single high-priority hotspot clusters. |
+| **AI Maintenance Strategy** | Mistral Chat Engine | Auto-generates structured 4-step engineering work plans upon field squad dispatch. |
+| **Before/After Verification** | Computer Vision Comparison | Compares original report photos against post-repair evidence photos before closing tickets. |
+| **Fiscal Command Hub** | Dynamic Resource Allocation | Real-time sector budget rebalancing (Power, Water, Roads, Sewage, Waste, Mesh) with AI advisory. |
+| **Kavach Digital Twin** | Leaflet GIS + Recharts Telemetry | Live ward resilience score (CHI), disaster simulation controls, and 4-hour predictive vectors. |
+| **Real-Time Push Stream** | Socket.IO WebSockets | Instant status change propagation, live citizen alert broadcasts, and cluster cascade updates. |
 
 ---
 
-## Screenshots
+## 📱 Progressive Web App (PWA)
 
-### Citizen Portal
+CivicPlus is configured as a fully installable **Progressive Web App**:
 
-| Screen                | Description                                                                                                  |
-| --------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Landing Page**      | Hero section showcasing platform benefits, features, and call-to-action buttons                              |
-| **Report Issue**      | Mobile-first form with photo capture, GPS location, category selection                                       |
-| **Citizen Dashboard** | Full reporting hub with live city map, issue stats, filters, and pagination _(see detailed breakdown below)_ |
-| **Issue Detail**      | Full issue information, map location, status history, upvote functionality                                   |
-| **Citizen Profile**   | User profile showing reported issues, stats, and contact information                                         |
+- **Native App Shell**: Runs in `display: standalone` without browser address bars on Android, iOS, and Chromium desktop.
+- **Offline Reliability**: Service worker pre-caches CSS/JS bundles, typography, SVG vector assets, and Carto map tiles.
+- **Install Prompt (`PWAInstallPrompt.jsx`)**: Non-intrusive floating modal prompting citizens to add CivicPlus to their home screen.
+- **Quick Shortcuts**:
+  - `Report an Issue` (`/report`)
+  - `Live City Feed` (`/city-feed`)
+  - `My Dashboard` (`/dashboard`)
 
-### Government Portal
+---
 
-| Screen                          | Description                                                                                                  |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Government Dashboard**        | Command center with 4 views: All Issues, Clustered Hotspots, By Status, Analytics                            |
-| **Issue Management**            | Detailed issue view with reassignment, status updates, bulk actions                                          |
-| **Fiscal Command Center**       | Ward-level resource allocation and AI-guided budget planning _(see detailed breakdown below)_                |
-| **City Intelligence Analytics** | KPI tracking, CHI score, resource demand forecasts, and congestion heatmaps _(see detailed breakdown below)_ |
-| **Live Map**                    | Interactive map showing all issue clusters with real-time updates                                            |
-| **Government Profile**          | Portal stats including total issues, resolved count, resolution rate, issue list                             |
+## 🛠 Tech Stack
 
-### Gallery
+### Frontend Client
+- **Core Framework**: React 19, Vite 7, React Router DOM 6
+- **Styling & UI**: Tailwind CSS 4, Framer Motion, Lucide React, Lucide Icons
+- **Mapping & Charts**: React-Leaflet 5, Leaflet 1.9, Carto Light Basemaps, Recharts 3.7
+- **PWA & Offline**: `vite-plugin-pwa`, Workbox Service Worker
+- **State & Networking**: TanStack React Query 5, Axios, Socket.IO Client 4.7, Canvas Confetti
+
+### Backend Server
+- **Runtime & Framework**: Node.js 18+, Express 4
+- **Database & ODM**: MongoDB Atlas, Mongoose 8 (2dsphere geospatial indexes)
+- **Authentication**: JWT (JSON Web Tokens) with role-based access (`citizen` vs `government`), BCrypt
+- **Image Storage**: Cloudinary Storage with graceful local disk fallback (`/uploads/`)
+- **Real-Time Layer**: Socket.IO WebSockets (rooms, broadcast, live telemetry)
+- **AI Vision Core**: Mistral AI / Pixtral Vision (`pixtral-12b-2409`)
+
+---
+
+## 🏗 System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      CIVICPLUS USER EXPERIENCE LAYER                     │
+│  [Citizen PWA Client]                     [Government Command Center]   │
+│  - /report (GPS + Vision Radar)           - /gov-work (Squad Dispatch)  │
+│  - /dashboard (Telemetry & Map)           - /gov-budget (Fiscal Hub)    │
+│  - /city-feed (Live Alert Broadcasts)     - /gov-live (Digital Twin)    │
+│  - /profile (Citizen Gamification)        - /gov-analytics (Resilience) │
+└────────────────────┬────────────────────────────────────┬───────────────┘
+                     │ REST API & Multipart Uploads       │ WebSocket Feed
+                     ▼                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      NODE.JS / EXPRESS BACKEND ENGINE                   │
+│  ├─ Auth & Role Guard (JWT / Citizen / Municipal Official)              │
+│  ├─ Geo-Clustering Engine (100m Haversine Radius Aggregation)          │
+│  ├─ Multi-Format Image Processor (Multer + Cloudinary + Disk Fallback)  │
+│  └─ WebSocket Event Dispatcher (Socket.IO Rooms & Broadcasts)           │
+└────────────────────┬────────────────────────────────────┬───────────────┘
+                     │                                    │
+       Mongoose ODM  │                     LLM Vision API │
+                     ▼                                    ▼
+┌──────────────────────────────┐        ┌────────────────────────────────┐
+│      MONGODB ATLAS DB        │        │      MISTRAL VISION ENGINE     │
+│  - Users (Karma, Badges)     │        │  - Pixtral 12B Vision Audit    │
+│  - Issues (2dsphere Index)   │        │  - 4-Step Repair Work Plan     │
+│  - Wards & Fiscal Resources  │        │  - Before/After Comparison     │
+│  - City Alerts & Broadcasts  │        │  - Fiscal Capital Guidance     │
+└──────────────────────────────┘        └────────────────────────────────┘
+```
+
+---
+
+## 🎮 Command Modules & Detailed Workflows
+
+### 1. Citizen Issue Reporting & Voice Radar
+- **Route**: `/report`
+- **Workflow**:
+  1. **Camera / Photo Capture**: Select or capture hazard evidence in any format (`JPG`, `PNG`, `WebP`, `HEIC`, `AVIF`).
+  2. **Instant AI Vision Audit**: Mistral Pixtral scans the photo, categorizes the hazard, assesses severity, and flags fraudulent uploads.
+  3. **Voice Input Dictation**: SpeechRecognition API transcribes spoken citizen complaints directly into the report box.
+  4. **GPS Pinpoint Coordinates**: Auto-detects latitude/longitude and nearest municipal ward.
+  5. **Auto-Clustering**: If an issue exists within 100 meters, it links as a hotspot cluster, multiplying priority without cluttering the database.
+
+---
+
+### 2. Workforce Dispatch & AI Verification (`/gov-work`)
+- **Route**: `/gov-work`
+- **Workflow**:
+  1. **Ticket Dispatch Queue**: Browse open tickets with status pills, severity metrics, and category tags.
+  2. **Squad Allocation**: Assign tickets to registered maintenance engineers or specialized squads (*BBMP Road Crew, BESCOM Grid Squad, BWSSB Pipeline Unit*).
+  3. **Mistral AI Repair Strategy**: Automatically computes a tailored 4-step execution strategy for on-ground squads.
+  4. **Resolution Proof Upload**: Workers upload an after-repair photo with instant image preview.
+  5. **AI Quality Verification**: Automated comparison between before/after images confirms repair authenticity before ticket closure.
+
+---
+
+### 3. Fiscal Command Center (`/gov-budget`)
+- **Route**: `/gov-budget`
+- **Workflow**:
+  1. **City Budget Pool**: Live fiscal balance bar displaying Total Municipal Pool (₹ Cr), Allocated Capital, and Remaining Funds.
+  2. **Ward Sector Grid**: Adjust budgets across 6 essential sectors (*Power ⚡, Water 💧, Traffic 🚗, Sewage 📊, Waste 🗑, Internet 📶*).
+  3. **Allocation Mode**: Interactive batch editing with immediate recalculation.
+  4. **Mistral Fiscal Advisory**: AI suggests capital reallocation based on live sensor loads and failure density.
+
+---
+
+### 4. City Intelligence Analytics (`/gov-analytics`)
+- **Route**: `/gov-analytics`
+- **Workflow**:
+  1. **Telemetry KPI Tiles**: Resolution Rate (%), Average Response Days, Severity Index, and Active Alerts.
+  2. **City Resilience Index (CHI)**: Circular SVG gauge visualizing overall ward health.
+  3. **Sensor Demand Meters**: Real-time load meters monitoring power grid and pipeline stress against safety limits.
+  4. **Congestion Heatmaps**: Ranked ward traffic congestion and geographic density logs.
+
+---
+
+### 5. Kavach Digital Twin Live Telemetry (`/gov-live`)
+- **Route**: `/gov-live`
+- **Workflow**:
+  1. **Interactive GIS Map**: Leaflet map with color-coded ward nodes (*Green = Optimal, Amber = Warning, Red = Critical*).
+  2. **Disaster Simulation**: Trigger scenarios (*Power Outage, Flooding, Traffic Jam, Normal Ops*) to test emergency responses.
+  3. **Historical Telemetry Replay**: Stream past sensor frames to audit city load trends.
+  4. **Predictive Horizon**: Recharts area graph tracking 4-hour demand projections.
+
+---
+
+## 📸 Screenshots & Visual Gallery
 
 <p align="center">
   <img src="client/public/screenshots/Screenshot from 2026-03-01 18-58-25.png" alt="Landing Page" width="48%" />
   &nbsp;
-  <img src="client/public/screenshots/ReportIssue.png" alt="Report Issue" width="48%" />
+  <img src="client/public/screenshots/ReportIssue.png" alt="Report Issue Form" width="48%" />
 </p>
-<p align="center"><em>Landing Page &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Report Issue Form</em></p>
+<p align="center"><em>Smart City Landing Page &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AI Report Submission Form</em></p>
 
 <p align="center">
   <img src="client/public/screenshots/Screenshot from 2026-03-01 19-07-48.png" alt="Citizen Dashboard" width="48%" />
   &nbsp;
-  <img src="client/public/screenshots/userDashboard.png" alt="User Dashboard" width="48%" />
+  <img src="client/public/screenshots/WorkAssign.png" alt="Workforce Assignment" width="48%" />
 </p>
-<p align="center"><em>Citizen Dashboard &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; User Dashboard</em></p>
+<p align="center"><em>Citizen Grievance Dashboard &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Workforce Dispatch Command</em></p>
 
 <p align="center">
-  <img src="client/public/screenshots/IssueResolve.png" alt="Issue Resolution" width="48%" />
+  <img src="client/public/screenshots/budget.png" alt="Fiscal Command Center" width="48%" />
   &nbsp;
-  <img src="client/public/screenshots/CityFeed.png" alt="City Feed" width="48%" />
+  <img src="client/public/screenshots/Screenshot 2026-03-07 014154.png" alt="City Analytics" width="48%" />
 </p>
-<p align="center"><em>Issue Resolution &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; City Feed</em></p>
-
-<p align="center">
-  <img src="client/public/screenshots/budget.png" alt="Fiscal Command Center — Budget Dashboard" width="48%" />
-  &nbsp;
-  <img src="client/public/screenshots/wards.png" alt="Ward Management" width="48%" />
-</p>
-<p align="center"><em>Fiscal Command Center (Budget Dashboard) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ward Management</em></p>
-
-<p align="center">
-  <img src="client/public/screenshots/WorkAssign.png" alt="Work Assignment" width="48%" />
-  &nbsp;
-  <img src="client/public/screenshots/Screenshot 2026-03-07 014154.png" alt="Government Analytics" width="48%" />
-</p>
-<p align="center"><em>Work Assignment &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; City Intelligence Analytics</em></p>
+<p align="center"><em>Fiscal Budget Command Center &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; City Intelligence Analytics</em></p>
 
 ---
 
-## Detailed Feature Breakdowns
-
-### Workforce Assignment & Verification
-
-Route: `/gov-work`  
-Access: Government role only
-
-The **Workforce Command Center** bridges the gap between digital reports and physical repairs.
-
-| Phase            | System Action                                                                                                                             |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Assignment**   | Government selects an unassigned ticket and points it to a specific maintenance crew member.                                              |
-| **AI Strategy**  | Upon assignment, the AI analyzes the issue photo and generates a 4-step technical **Maintenance Strategy** specifically for that problem. |
-| **Execution**    | The ticket status transitions to `IN-PROGRESS`. Crew members execute the AI work plan in the field.                                       |
-| **Resolution**   | Crew uploads a "Resolution Photo". The AI compares the _Before_ and _After_ images to verify if the infrastructure issue is truly fixed.  |
-| **Verification** | If verified, the issue is marked `RESOLVED`. Government can override and manually confirm resolutions via the dashboard.                  |
-
-**Key API endpoints:**
-
-- `POST /api/issues/:id/assign` → Assignment + AI plan generation
-- `POST /api/issues/:id/resolve` → Resolution + AI verification
-
----
-
-### Citizen Dashboard — My Reports Dashboard
-
-The citizen dashboard is the primary hub for tracking submitted reports.
-
-| Section             | Details                                                                                                                                                                                         |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Summary Stats**   | Four stat cards: _Total Reports_, _Pending_ (awaiting review), _In Progress_ (being resolved), _Resolved_ (fixed). Each card has a colour-coded left border and icon.                           |
-| **City Issues Map** | Full-width interactive Leaflet map showing all city issues (not just the citizen's own). Toggle-able for screen space. Powered by `IssueMap` component.                                         |
-| **Filter Bar**      | Filter by **Status** (`pending` / `in-progress` / `resolved`) and **Category** (`Pothole`, `Streetlight`, `Garbage`, `Drainage`, `Water Leakage`, `Others`). Filters reset page to 1 on change. |
-| **Issue Grid**      | Paginated grid (9 per page) of `IssueCard` components. Each card shows photo thumbnail, category badge, status badge, GPS ward, upvote count, and submission date.                              |
-| **Pagination**      | Previous / Next page controls with current page indicator.                                                                                                                                      |
-| **Geofence Banner** | `GeofenceBanner` component auto-appears when the citizen is near a known high-alert zone.                                                                                                       |
-| **Success Toast**   | Animated green toast confirmation after a new issue submission redirects here with `?success=1`.                                                                                                |
-| **Quick Link**      | Prominent _+ New Report_ button navigates to the report submission form.                                                                                                                        |
-
-**API calls made by this page:**
-
-```
-GET /api/issues/map              → all city issues for the map layer
-GET /api/issues/my?page&limit&status&category  → citizen's own paginated issues
-```
-
----
-
-### Government Budget Dashboard — Fiscal Command Center
-
-Route: `/gov-budget`  
-Access: Government role only
-
-The Fiscal Command Center lets government officials manage per-ward, per-sector budget allocations in real time, guided by AI spending recommendations.
-
-#### Budget Summary Bar
-
-A full-width dark panel at the top always shows three live figures:
-
-| Metric                | Description                                                                  |
-| --------------------- | ---------------------------------------------------------------------------- |
-| **Total City Pool**   | Fixed city-wide budget ceiling (e.g. ₹15 Cr). Shown in Crores.               |
-| **Allocated Funds**   | Sum of all ward × sector budgets currently saved. Updates live in edit mode. |
-| **Remaining Balance** | `Pool − Allocated`. Turns **red** if allocation exceeds the pool.            |
-
-A progress bar below the figures fills green (or red on over-allocation) proportional to utilisation.
-
-#### Ward Cards — Sector Budget Grid
-
-Each registered ward gets a card with:
-
-| Element                   | Description                                                                                                                              |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Ward ID + Name + Zone** | Header with coloured zone badge                                                                                                          |
-| **Ward Total**            | Sum of all sector budgets for that ward (shown in ₹k)                                                                                    |
-| **Sector Columns**        | 6 infrastructure sectors per ward — **Power** (⚡), **Water** (💧), **Traffic** (🚗), **Sewage** (📊), **Waste** (🗑), **Internet** (📶) |
-| **Per-Sector Budget**     | Current allocated budget in ₹. Editable input when in _Allocation Mode_.                                                                 |
-| **Utilisation Bar**       | Mini progress bar showing real-time sensor-reported utilisation % for each sector.                                                       |
-
-#### Edit / Allocation Mode
-
-1. Click **ENTER ALLOCATION MODE** — all budget fields become editable inputs.
-2. Adjust per-sector values for any ward; the _Allocated Funds_ total updates instantly.
-3. Click **COMMIT CHANGES** to `PATCH /api/wards/:id` for every modified ward simultaneously.
-4. Click **CANCEL** to discard and reload from the server.
-
-#### AI Recommendations Panel
-
-A right-side panel fetches AI-generated spending advice from `GET /api/analytics/ai-recommendations`. It suggests where to increase or reduce budgets based on current sensor load and unresolved issue density per sector.
-
-**API calls made by this page:**
-
-```
-GET  /api/wards                          → all wards with current resource budgets & utilisation
-GET  /api/analytics/ai-recommendations  → AI-guided reallocation suggestions
-PATCH /api/wards/:id                     → save updated resource budgets per ward
-```
-
----
-
-### Government Analytics — City Intelligence Analytics
-
-Route: `/gov-analytics`  
-Access: Government role only
-
-A decision-support dashboard combining issue KPIs, IoT sensor data, and geospatial analysis into a single command view.
-
-#### KPI Grid (Top Row)
-
-Four headline metrics displayed as colour-coded border cards:
-
-| KPI                    | Description                                                   | Colour |
-| ---------------------- | ------------------------------------------------------------- | ------ |
-| **Resolution Rate**    | % of issues resolved this month                               | Green  |
-| **Avg Response Time**  | Average days from submission to first action (target: 3 days) | Blue   |
-| **Avg Severity Score** | Mean severity score out of 100 across all open issues         | Amber  |
-| **Active Alerts**      | Count of live traffic / utility alerts from IoT sensors       | Red    |
-
-#### City Resilience Index (CHI) — Dark Card
-
-An animated circular gauge on a dark background displays:
-
-- **CHI Score** — 0–100 composite health index computed by the Kavach AI engine, pulling from `GET /api/analytics/kavach-overview`.
-- **Wards Active** — number of wards with active sensor feeds.
-- **System Status** — `NOMINAL` / `DEGRADED` banner.
-
-The gauge ring fills proportionally to the CHI score with a smooth 1-second CSS transition on load.
-
-#### Real-Time Resource Demand Panel
-
-Fetched from `kavachData.resourceAverages`. For each resource type (Power, Water, Traffic, Sewage, Waste, Internet):
-
-- Labelled progress bar showing current average % load.
-- Bar turns **red** above 80 % load (critical threshold).
-- Min/max labels show current load vs. 100 % limit.
-- Tagged **LIVE SENSOR FEED** — data updates on every manual refresh.
-
-#### Active Traffic Hotspots
-
-Ranked list of wards with the most active congestion/traffic alerts:
-
-- Ward name + active alert count.
-- Severity badge (`CRITICAL` = red, others = amber).
-- Sourced from `data.congestionZones` (aggregated from `CityAlert` collection).
-
-#### Ward-Level Issue Density Map
-
-Grid showing the top 6 wards by open-issue count:
-
-- Count badge, ward name, and average GPS coordinates (lat/lng) of all issues in that ward.
-- Useful for dispatching field teams where reports are most concentrated.
-
-**API calls made by this page:**
-
-```
-GET /api/analytics/overview          → resolution rate, response time, severity, alerts, congestion zones, zone hotspots
-GET /api/analytics/kavach-overview   → CHI score, ward count, per-resource average utilisation
-```
-
----
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
+- **Node.js** ≥ 18.0.0
+- **MongoDB** (Local instance or [MongoDB Atlas](https://cloud.mongodb.com))
+- **npm** ≥ 9.0.0
 
-- **Node.js** ≥ 18
-- **MongoDB** — local or [MongoDB Atlas](https://cloud.mongodb.com) free tier
-- **npm** ≥ 9
-
-### Installation
+### Quick Setup
 
 ```bash
-# Clone repository
+# 1. Clone the repository
 git clone https://github.com/Rakshi2609/cc_4.git
 cd cc_4
 
-# Backend setup
+# 2. Backend Setup
 cd backend
 npm install
-cp .env.example .env
+cp .env.example .env    # Configure MONGO_URI, JWT_SECRET, and MISTRAL_API_KEY
 npm run dev
 
-# Frontend setup (in another terminal)
-cd client
+# 3. Frontend Client Setup (in a second terminal)
+cd ../client
 npm install
 npm run dev
-
-Note: The frontend reads the backend base URL from `client/.env` using `VITE_BACKEND_URL` (defaults to `http://localhost:5000`). See Environment Setup below.
-
-# Create government account
-curl -X POST http://localhost:5000/api/auth/create-gov \
-  -H "Content-Type: application/json" \
-  -d '{"name":"City Admin","email":"admin@gov.in","password":"admin@123"}'
-
-# Open in browser
-# Citizen: http://localhost:5173/register
-# Government: http://localhost:5173/login
 ```
 
-## Environment Setup
+### Seed Initial Administrative Account
 
-### `backend/.env` — Complete Reference
+```bash
+# Create a Municipal Official Administrator account
+curl -X POST http://localhost:5000/api/auth/create-gov \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Municipal Chief Engineer",
+    "email": "admin@gov.in",
+    "password": "adminpassword123"
+  }'
+```
 
-Create this file at `backend/.env` before starting the server. All variables marked **Required** must be set or the server will refuse to start.
+Access the application in your browser:
+- **Citizen Portal**: [http://localhost:5173/register](http://localhost:5173/register)
+- **Government Hub**: [http://localhost:5173/login](http://localhost:5173/login)
 
-| Variable                | Required                | Default                               | Description                                                                                                                                     |
-| ----------------------- | ----------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MONGO_URI`             | ✅ Required             | `mongodb://localhost:27017/civicplus` | Full MongoDB connection string. Use a [MongoDB Atlas](https://cloud.mongodb.com) URI for production.                                            |
-| `JWT_SECRET`            | ✅ Required             | _(none — server exits if missing)_    | Long random string (≥ 64 chars) used to sign and verify JWT tokens. Generate with `openssl rand -hex 64`.                                       |
-| `JWT_EXPIRES_IN`        | Optional                | `7d`                                  | JWT token lifetime. Accepts any [ms](https://github.com/vercel/ms) format, e.g. `1d`, `12h`, `7d`.                                              |
-| `PORT`                  | Optional                | `5000`                                | Port the Express server listens on.                                                                                                             |
-| `CLIENT_URL`            | ✅ Required             | `http://localhost:5173`               | Exact origin of the React frontend. Used for CORS allow-list. **Must match** the Vite dev server URL (or your production frontend URL).         |
-| `CLOUDINARY_CLOUD_NAME` | ✅ Required for uploads | _(none)_                              | Your Cloudinary cloud name. Find it on the [Cloudinary Dashboard](https://cloudinary.com/console).                                              |
-| `CLOUDINARY_API_KEY`    | ✅ Required for uploads | _(none)_                              | Cloudinary API key (numeric string).                                                                                                            |
-| `CLOUDINARY_API_SECRET` | ✅ Required for uploads | _(none)_                              | Cloudinary API secret. **Never expose this to the client.**                                                                                     |
-| `MISTRAL_API_KEY` / `LLM_API_KEY` | Optional                | _(none)_                              | API key for Mistral AI used by the AI vision service (`aiService.js`). Required for AI issue categorization, work planning, and resolution verification. |
-| `LLM_BASE_URL`          | Optional                | `https://api.mistral.ai/v1`           | Base URL of the OpenAI-compatible Mistral API endpoint. Override to use a different provider.                                                    |
-| `LLM_MODEL`             | Optional                | `pixtral-12b-2409`                     | Mistral Vision model identifier (e.g. `pixtral-12b-2409` or `pixtral-large-latest`).                                                              |
+---
 
-**Full `backend/.env` template:**
+## ⚙ Environment Configuration
+
+### `backend/.env`
 
 ```env
 # ── Database ─────────────────────────────────────────────────
-MONGO_URI=mongodb://localhost:27017/civicplus
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/civicplus?retryWrites=true&w=majority
 
-# ── Auth ─────────────────────────────────────────────────────
-JWT_SECRET=replace_with_at_least_64_random_chars
+# ── Authentication ───────────────────────────────────────────
+JWT_SECRET=generate_with_openssl_rand_hex_64
 JWT_EXPIRES_IN=7d
 
-# ── Server ───────────────────────────────────────────────────
+# ── Server & CORS ────────────────────────────────────────────
 PORT=5000
 CLIENT_URL=http://localhost:5173
 
-# ── Cloudinary (image uploads) ───────────────────────────────
+# ── Cloudinary (Optional - has local disk fallback) ──────────
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-# ── Mistral AI / Vision (Pixtral) ────────────────────────────
+# ── Mistral AI Vision (Pixtral) ──────────────────────────────
 MISTRAL_API_KEY=your_mistral_api_key
 LLM_BASE_URL=https://api.mistral.ai/v1
 LLM_MODEL=pixtral-12b-2409
 ```
 
-### `client/.env` — Frontend Variables
-
-| Variable           | Required | Default                 | Description                                                                                                                                   |
-| ------------------ | -------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `VITE_BACKEND_URL` | Optional | `http://localhost:5000` | Full base URL of the backend API. All Axios requests are prefixed with this value. Change to your deployed backend URL for production builds. |
-
-**`client/.env` template:**
+### `client/.env`
 
 ```env
 VITE_BACKEND_URL=http://localhost:5000
 ```
 
-> **Security note:** Never commit either `.env` file to version control. Both are already included in `.gitignore`. The `CLOUDINARY_API_SECRET` and `JWT_SECRET` in particular must be kept server-side only.
+---
+
+## 📡 API Reference
+
+### Authentication
+- `POST /api/auth/register` — Citizen registration
+- `POST /api/auth/login` — Account authentication & JWT issue
+- `GET /api/auth/me` — Current user profile & karma stats
+- `POST /api/auth/create-gov` — Administrative account creation
+
+### Issues & Geo-Clusters
+- `POST /api/issues` — Submit new issue with image & GPS coordinates
+- `GET /api/issues/my` — Paginated list of citizen's reported issues
+- `GET /api/issues` — All municipal issues (Government only)
+- `GET /api/issues/:id` — Single issue diagnostics & audit timeline
+- `POST /api/issues/:id/assign` — Assign squad & generate AI repair plan
+- `POST /api/issues/:id/resolve` — Submit after photo & AI verification
+- `GET /api/issues/users/assignable` — Fetch assignable field squads & engineers
+- `GET /api/issues/clusters` — Hotspot cluster groupings
+
+### City Intelligence & Fiscal
+- `GET /api/wards` — All municipal ward telemetry & resource budgets
+- `PATCH /api/wards/:id` — Update sector allocations for a ward
+- `GET /api/analytics/overview` — City-wide resolution KPIs & congestion zones
+- `GET /api/analytics/kavach-overview` — City Resilience Index (CHI) score
+- `GET /api/analytics/ai-recommendations` — AI capital reallocation guidance
+- `POST /api/sim/disaster` — Trigger simulated municipal emergencies
 
 ---
 
-## API Endpoints (Quick Reference)
+## 🔍 Troubleshooting & FAQ
 
-### Auth
-
-- `POST /api/auth/register` — Create citizen account
-- `POST /api/auth/login` — Login
-- `GET /api/auth/me` — Get profile
-- `POST /api/auth/create-gov` — Create government account (admin)
-
-### Issues
-
-- `POST /api/issues` — Report new issue
-- `GET /api/issues/my` — My reported issues (citizen)
-- `GET /api/issues` — All issues (government only)
-- `GET /api/issues/:id` — Single issue detail
-- `PUT /api/issues/:id/status` — Update status & cascade to cluster
-- `POST /api/issues/:id/upvote` — Toggle upvote
-- `GET /api/issues/clusters` — All hotspot clusters (gov only)
-- `GET /api/issues/stats` — System statistics (gov only)
+| Symptom | Resolution |
+| :--- | :--- |
+| **CORS policy blocked error** | Verify `CLIENT_URL` in `backend/.env` matches your exact frontend port (`http://localhost:5173`). |
+| **MongoDB timeout / connection failure** | Ensure your IP address is whitelisted in MongoDB Atlas Network Access rules. |
+| **Image upload error** | Cloudinary is optional; if missing, images save automatically to `backend/uploads/`. All standard formats (`JPG, PNG, WebP, AVIF, HEIC`) are supported up to 10MB. |
+| **PWA Install Banner not appearing** | The browser triggers `beforeinstallprompt` on valid HTTPS or `localhost` sessions. Ensure the app is not already installed. |
+| **Leaflet map tiles blank** | Ensure Leaflet CSS is imported in `main.jsx` / `App.css` and network connection to Carto tile CDN is open. |
 
 ---
 
-## Troubleshooting
+## 👥 Contributors & Support
 
-| Issue                    | Fix                                                                                                                                            |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| MongoDB connection fails | Check `MONGO_URI` in `.env`                                                                                                                    |
-| CORS errors              | Ensure `CLIENT_URL` matches frontend port                                                                                                      |
-| Socket.IO not connecting | Verify backend/frontend use same port                                                                                                          |
-| Images not uploading     | Ensure Cloudinary env vars are set in `backend/.env` and restart the backend. For legacy local uploads ensure `uploads/` exists if still used. |
-| Map doesn't show tiles   | Import Leaflet CSS in `IssueMap.jsx`                                                                                                           |
+Developed for the **Smart India Hackathon (SIH)**. For inquiries, pull requests, or bug reports, visit the repository:
 
----
-
-## Core Architecture
-
-```
-Frontend (React 18)
-  ├─ AuthContext (user, token)
-  ├─ SocketContext (real-time updates)
-  └─ pages/components (Landing, Auth, Dashboards, Issues)
-        ↓ (REST API + WebSocket)
-Backend (Express + Socket.IO)
-  ├─ Auth routes (JWT-based)
-  ├─ Issue routes (CRUD + clustering)
-  └─ Real-time notifications
-        ↓ (Mongoose ODM)
-MongoDB
-  ├─ Users collection
-  └─ Issues collection (geo-indexed with 2dsphere)
-```
-
----
-
-## Key Features Summary
-
-✅ **Citizens**: Report issues with photo + GPS, track status, upvote, get real-time notifications  
-✅ **Government**: Manage issues, assign clusters, resolve with cascade notifications  
-✅ **Smart Clustering**: Auto-groups duplicate reports within 100m radius  
-✅ **Priority Scoring**: Ranks issues by cluster size, upvotes, age  
-✅ **Real-Time Updates**: Socket.IO push notifications on status changes  
-✅ **Transparency**: Full audit trail with SHA-256 hashes  
-✅ **User Profiles**: Separate dashboards for citizens and government  
-✅ **Responsive Design**: Mobile-first Tailwind CSS  
-✅ **Role-Based Access**: JWT authentication with citizen/government roles
-
----
-
-## Design Notes
-
-| Topic                                            | Detail                                                                                                                                                                                                                                                                   |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **IoT as Socket.IO broadcast vs stored records** | IoT ghost reports are broadcast-only signals — not stored in MongoDB — to keep the demonstration clean. In production, sensor readings would create real issue documents via the same `POST /api/issues` flow, requiring no frontend changes beyond swapping the source. |
-
----
-
-## Demo & Presentation
-
-| Resource                  | Link                                                                                                        | Description                                            |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 🎬 **Demo Video**         | [Watch on Google Drive](https://drive.google.com/file/d/12bo_ga9FtjNNMZFZiPV3eXX3hUw3efBH/view?usp=sharing) | Full walkthrough of the citizen and government portals |
-| 📊 **Presentation (PPT)** | [Open on Google Drive](https://drive.google.com/file/d/1kiyl2MqXdXG5NCBibqdpL1X2Zx9M47QU/view?usp=sharing)  | Project architecture, features, and design decisions   |
-| 💻 **Source Code**        | [github.com/Rakshi2609/cc_4](https://github.com/Rakshi2609/cc_4)                                            | Full source — backend, frontend, and seed scripts      |
-
----
-
-## Support
-
-For issues or questions, open a [GitHub Issue](https://github.com/Rakshi2609/cc_4/issues) or contact the team.
+🔗 **[github.com/Rakshi2609/cc_4](https://github.com/Rakshi2609/cc_4)**
