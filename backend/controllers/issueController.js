@@ -548,7 +548,7 @@ export const voteIssue = async (req, res) => {
 // GET /api/users/assignable (govt only)
 export const getAssignableUsers = async (req, res) => {
   try {
-    const users = await User.find({ role: 'citizen' }).select('name email');
+    const users = await User.find().select('name email role');
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -567,7 +567,24 @@ export const assignIssue = async (req, res) => {
 
     // Generate AI Work Plan
     if (issue.imageUrl) {
-      issue.aiWorkPlan = await generateWorkPlan(issue.imageUrl, issue.category);
+      try {
+        issue.aiWorkPlan = await generateWorkPlan(issue.imageUrl, issue.category);
+      } catch (aiErr) {
+        console.warn('[AI WorkPlan] Fallback applied:', aiErr.message);
+        issue.aiWorkPlan = [
+          'Conduct initial on-site physical inspection',
+          'Deploy safety barriers and procure materials',
+          'Execute engineering repair according to municipal standard',
+          'Capture after-repair photo and submit resolution verification'
+        ];
+      }
+    } else {
+      issue.aiWorkPlan = [
+        'Conduct initial on-site physical inspection',
+        'Deploy safety barriers and procure materials',
+        'Execute engineering repair according to municipal standard',
+        'Capture after-repair photo and submit resolution verification'
+      ];
     }
 
     await issue.save();
