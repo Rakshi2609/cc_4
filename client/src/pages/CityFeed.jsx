@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
@@ -19,10 +20,10 @@ const CAT_ICON_MAP = {
 };
 
 const PRIORITY_BADGE = {
-    low: 'bg-gray-50 text-gray-600 border-gray-200',
+    low: 'bg-slate-100 text-slate-700 border-slate-200',
     medium: 'bg-blue-50 text-blue-700 border-blue-200',
     high: 'bg-amber-50 text-amber-700 border-amber-200',
-    critical: 'bg-red-50 text-red-700 border-red-200',
+    critical: 'bg-rose-50 text-rose-700 border-rose-200',
 };
 
 function timeAgo(date) {
@@ -103,92 +104,120 @@ export default function CityFeed() {
     const warningCount = alerts.filter(a => a.severity === 'warning').length;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="container mx-auto px-4 pt-6 pb-16 max-w-6xl">
+        <div className="min-h-screen bg-[#F8FAFC] pb-20 font-sans">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 max-w-6xl">
 
                 {/* Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <Radio size={20} className="text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">City Live Feed</h1>
-                                <p className="text-sm text-gray-500">Real-time city alerts & government announcements</p>
-                            </div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-600 text-xs font-bold uppercase tracking-widest mb-2.5">
+                            <Radio size={13} className="animate-pulse" />
+                            <span>Real-Time Broadcast Network</span>
                         </div>
+                        <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight">
+                            City Live Feed
+                        </h1>
+                        <p className="text-sm text-slate-500 mt-1">
+                            Live telemetry notifications &amp; official municipal corporation announcements
+                        </p>
                     </div>
-                    <button onClick={fetchData}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
+
+                    <button
+                        onClick={fetchData}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:border-orange-300 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-orange-600 shadow-sm transition-all cursor-pointer self-start sm:self-auto"
+                    >
+                        <RefreshCw size={14} className={loading ? 'animate-spin text-orange-600' : 'text-orange-600'} />
+                        <span>Refresh Stream</span>
                     </button>
                 </div>
 
-                {/* Live Summary Banner */}
+                {/* Live Summary Metric Tiles */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div className="card rounded-xl p-5 border-l-4 border-l-red-500 hover:shadow-md transition-shadow fade-in">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                                <ShieldAlert size={20} className="text-red-600" />
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+                    >
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Alerts</span>
+                            <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600">
+                                <ShieldAlert size={16} />
                             </div>
                         </div>
-                        <p className="text-2xl font-bold text-red-600">{summary.totalActiveAlerts}</p>
-                        <p className="text-sm font-medium text-gray-900">Active Alerts</p>
-                        <p className="text-xs text-gray-500">City-wide active issues</p>
-                    </div>
+                        <p className="text-3xl font-extrabold font-mono text-rose-600 mb-1">{summary.totalActiveAlerts}</p>
+                        <p className="text-[11px] text-slate-400">City-wide active issues</p>
+                    </motion.div>
 
-                    <div className="card rounded-xl p-5 border-l-4 border-l-amber-500 hover:shadow-md transition-shadow fade-in" style={{ animationDelay: '0.05s' }}>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                                <AlertTriangle size={20} className="text-amber-600" />
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 }}
+                        className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+                    >
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Critical</span>
+                            <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600">
+                                <AlertTriangle size={16} />
                             </div>
                         </div>
-                        <p className="text-2xl font-bold text-amber-600">{criticalCount}</p>
-                        <p className="text-sm font-medium text-gray-900">Critical</p>
-                        <p className="text-xs text-gray-500">Requires immediate attention</p>
-                    </div>
+                        <p className="text-3xl font-extrabold font-mono text-amber-600 mb-1">{criticalCount}</p>
+                        <p className="text-[11px] text-slate-400">Requires urgent dispatch</p>
+                    </motion.div>
 
-                    <div className="card rounded-xl p-5 border-l-4 border-l-blue-500 hover:shadow-md transition-shadow fade-in" style={{ animationDelay: '0.1s' }}>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                                <BarChart3 size={20} className="text-blue-600" />
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+                    >
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Warnings</span>
+                            <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600">
+                                <BarChart3 size={16} />
                             </div>
                         </div>
-                        <p className="text-2xl font-bold text-blue-600">{warningCount}</p>
-                        <p className="text-sm font-medium text-gray-900">Warnings</p>
-                        <p className="text-xs text-gray-500">Monitor closely</p>
-                    </div>
+                        <p className="text-3xl font-extrabold font-mono text-blue-600 mb-1">{warningCount}</p>
+                        <p className="text-[11px] text-slate-400">Monitored closely</p>
+                    </motion.div>
 
-                    <div className="card rounded-xl p-5 border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow fade-in" style={{ animationDelay: '0.15s' }}>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
-                                <Megaphone size={20} className="text-indigo-600" />
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                        className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all"
+                    >
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Broadcasts</span>
+                            <div className="p-2 rounded-xl bg-orange-50 border border-orange-200 text-orange-600">
+                                <Megaphone size={16} />
                             </div>
                         </div>
-                        <p className="text-2xl font-bold text-indigo-600">{summary.totalAnnouncements}</p>
-                        <p className="text-sm font-medium text-gray-900">Announcements</p>
-                        <p className="text-xs text-gray-500">From city administration</p>
-                    </div>
+                        <p className="text-3xl font-extrabold font-mono text-orange-600 mb-1">{summary.totalAnnouncements}</p>
+                        <p className="text-[11px] text-slate-400">Gov official notices</p>
+                    </motion.div>
                 </div>
 
-                {/* Category Breakdown Chips */}
+                {/* Category Filter Chips */}
                 {summary.alertsByCategory?.length > 0 && (
-                    <div className="card rounded-xl p-5 mb-8 fade-in">
-                        <p className="mono text-[10px] text-gray-400 tracking-widest mb-3 uppercase">Alerts by Category</p>
+                    <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 mb-8 shadow-sm">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Filter by Category</p>
                         <div className="flex flex-wrap gap-2">
                             {summary.alertsByCategory.map(cat => {
                                 const CatIcon = CAT_ICON_MAP[cat._id] || MoreHorizontal;
+                                const isSelected = catFilter === cat._id;
                                 return (
-                                    <button key={cat._id}
-                                        onClick={() => setCatFilter(catFilter === cat._id ? '' : cat._id)}
-                                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${catFilter === cat._id
-                                            ? 'bg-blue-600 text-white border-blue-600'
-                                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-                                            }`}>
+                                    <button
+                                        key={cat._id}
+                                        onClick={() => setCatFilter(isSelected ? '' : cat._id)}
+                                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                                            isSelected
+                                                ? 'bg-[#ea580c] text-white border-[#ea580c] shadow-md shadow-orange-500/25'
+                                                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                                        }`}
+                                    >
                                         <CatIcon size={14} />
-                                        {cat._id.charAt(0).toUpperCase() + cat._id.slice(1)}
-                                        <span className={`mono text-[10px] font-bold px-1.5 py-0.5 rounded-full ${catFilter === cat._id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                                        <span>{cat._id.charAt(0).toUpperCase() + cat._id.slice(1)}</span>
+                                        <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-md ${isSelected ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-700'}`}>
                                             {cat.count}
                                         </span>
                                     </button>
@@ -199,22 +228,35 @@ export default function CityFeed() {
                 )}
 
                 {/* Tabs */}
-                <div className="flex items-center gap-1 mb-6 border-b border-gray-200">
-                    <button onClick={() => setActiveTab('alerts')}
-                        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'alerts'
-                            ? 'text-blue-600 border-blue-600'
-                            : 'text-gray-500 border-transparent hover:text-gray-700'
-                            }`}>
-                        <AlertTriangle size={15} /> Active Alerts
-                        <span className="mono text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-semibold">{alerts.length}</span>
+                <div className="flex items-center gap-2 mb-6 border-b border-slate-200">
+                    <button
+                        onClick={() => setActiveTab('alerts')}
+                        className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-colors cursor-pointer ${
+                            activeTab === 'alerts'
+                                ? 'text-[#ea580c] border-[#ea580c]'
+                                : 'text-slate-500 border-transparent hover:text-slate-800'
+                        }`}
+                    >
+                        <AlertTriangle size={16} />
+                        <span>Active Alerts</span>
+                        <span className="text-[10px] font-mono bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold">
+                            {alerts.length}
+                        </span>
                     </button>
-                    <button onClick={() => setActiveTab('announcements')}
-                        className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'announcements'
-                            ? 'text-blue-600 border-blue-600'
-                            : 'text-gray-500 border-transparent hover:text-gray-700'
-                            }`}>
-                        <Megaphone size={15} /> Announcements
-                        <span className="mono text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-semibold">{announcements.length}</span>
+
+                    <button
+                        onClick={() => setActiveTab('announcements')}
+                        className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-colors cursor-pointer ${
+                            activeTab === 'announcements'
+                                ? 'text-[#ea580c] border-[#ea580c]'
+                                : 'text-slate-500 border-transparent hover:text-slate-800'
+                        }`}
+                    >
+                        <Megaphone size={16} />
+                        <span>Announcements</span>
+                        <span className="text-[10px] font-mono bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold">
+                            {announcements.length}
+                        </span>
                     </button>
                 </div>
 
@@ -222,43 +264,55 @@ export default function CityFeed() {
                 {activeTab === 'alerts' && (
                     <div>
                         {/* Filters */}
-                        <div className="flex items-center gap-3 mb-5 flex-wrap">
-                            <Filter size={14} className="text-gray-400" />
-                            <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)}
-                                className="px-3 py-2 rounded-lg text-sm border border-gray-300 bg-white">
+                        <div className="flex items-center gap-3 mb-6 flex-wrap">
+                            <Filter size={15} className="text-orange-600" />
+                            <select
+                                value={catFilter}
+                                onChange={(e) => setCatFilter(e.target.value)}
+                                className="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-800 outline-none"
+                            >
                                 {CATEGORIES.map(c => <option key={c} value={c}>{c ? c.charAt(0).toUpperCase() + c.slice(1) : 'All Categories'}</option>)}
                             </select>
-                            <select value={sevFilter} onChange={(e) => setSevFilter(e.target.value)}
-                                className="px-3 py-2 rounded-lg text-sm border border-gray-300 bg-white">
+                            <select
+                                value={sevFilter}
+                                onChange={(e) => setSevFilter(e.target.value)}
+                                className="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-800 outline-none"
+                            >
                                 {SEVERITIES.map(s => <option key={s} value={s}>{s ? s.charAt(0).toUpperCase() + s.slice(1) : 'All Severity'}</option>)}
                             </select>
                             {(catFilter || sevFilter) && (
-                                <button onClick={() => { setCatFilter(''); setSevFilter(''); }}
-                                    className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                <button
+                                    onClick={() => { setCatFilter(''); setSevFilter(''); }}
+                                    className="text-xs text-orange-600 hover:text-orange-700 font-bold cursor-pointer"
+                                >
                                     Clear filters
                                 </button>
                             )}
                         </div>
 
-                        {/* Alert Cards */}
                         {loading ? (
                             <div className="space-y-4">
-                                {[...Array(3)].map((_, i) => <div key={i} className="skeleton rounded-xl h-24" />)}
+                                {[...Array(3)].map((_, i) => <div key={i} className="rounded-2xl h-24 bg-slate-200/60 animate-pulse" />)}
                             </div>
                         ) : alerts.length === 0 ? (
-                            <div className="card rounded-xl p-12 text-center">
-                                <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                    <CheckCircle2 size={32} className="text-green-400" />
+                            <div className="bg-white border border-slate-200/90 rounded-3xl p-12 text-center shadow-sm max-w-md mx-auto">
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-4 text-emerald-600">
+                                    <CheckCircle2 size={28} />
                                 </div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-1">All Clear! 🎉</h3>
-                                <p className="text-gray-600">No active city alerts right now. Everything looks good.</p>
+                                <h3 className="text-base font-bold text-[#0F172A] mb-1">All Clear in Your Ward!</h3>
+                                <p className="text-xs text-slate-500">No active city alerts right now. Systems are operational.</p>
                             </div>
                         ) : (
                             <div className="space-y-3">
                                 {alerts.map((alert, index) => (
-                                    <div key={alert._id} className="fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
+                                    <motion.div
+                                        key={alert._id}
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.25, delay: index * 0.04 }}
+                                    >
                                         <AlertCard alert={alert} />
-                                    </div>
+                                    </motion.div>
                                 ))}
                             </div>
                         )}
@@ -270,48 +324,49 @@ export default function CityFeed() {
                     <div>
                         {loading ? (
                             <div className="space-y-4">
-                                {[...Array(3)].map((_, i) => <div key={i} className="skeleton rounded-xl h-20" />)}
+                                {[...Array(3)].map((_, i) => <div key={i} className="rounded-2xl h-24 bg-slate-200/60 animate-pulse" />)}
                             </div>
                         ) : announcements.length === 0 ? (
-                            <div className="card rounded-xl p-12 text-center">
-                                <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                    <Megaphone size={32} className="text-gray-300" />
+                            <div className="bg-white border border-slate-200/90 rounded-3xl p-12 text-center shadow-sm max-w-md mx-auto">
+                                <div className="w-14 h-14 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mx-auto mb-4 text-orange-600">
+                                    <Megaphone size={28} />
                                 </div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-1">No Announcements</h3>
-                                <p className="text-gray-600">No government announcements at this time.</p>
+                                <h3 className="text-base font-bold text-[#0F172A] mb-1">No Broadcasts</h3>
+                                <p className="text-xs text-slate-500">No official announcements from municipal corporation.</p>
                             </div>
                         ) : (
                             <div className="space-y-3">
                                 {announcements.map((ann, index) => (
-                                    <div key={ann._id}
-                                        className="card rounded-xl p-5 hover:shadow-md transition-all fade-in border-l-4"
-                                        style={{
-                                            animationDelay: `${index * 0.05}s`,
-                                            borderLeftColor: ann.priority === 'critical' ? '#ef4444' : ann.priority === 'high' ? '#f59e0b' : ann.priority === 'medium' ? '#3b82f6' : '#9ca3af',
-                                        }}>
-                                        <div className="flex items-start gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                                                <Megaphone size={18} className="text-indigo-600" />
+                                    <motion.div
+                                        key={ann._id}
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.25, delay: index * 0.04 }}
+                                        className="bg-white rounded-2xl p-5 border border-slate-200/90 hover:border-orange-200 shadow-sm transition-all"
+                                    >
+                                        <div className="flex items-start gap-3.5">
+                                            <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center flex-shrink-0 text-orange-600">
+                                                <Megaphone size={18} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                                    <h3 className="text-sm font-semibold text-gray-900">{ann.title}</h3>
-                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-semibold tracking-wider uppercase ${PRIORITY_BADGE[ann.priority]}`}>
+                                                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                                    <h3 className="text-sm font-bold text-[#0F172A]">{ann.title}</h3>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${PRIORITY_BADGE[ann.priority] || PRIORITY_BADGE.low}`}>
                                                         {ann.priority}
                                                     </span>
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-[10px] font-medium text-gray-600">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600">
                                                         {ann.category}
                                                     </span>
                                                 </div>
-                                                <p className="text-xs text-gray-600 mb-2">{ann.body}</p>
-                                                <div className="flex items-center gap-3 text-[10px] text-gray-400">
-                                                    <span className="flex items-center gap-1"><Clock size={9} /> {timeAgo(ann.createdAt)}</span>
-                                                    {ann.createdBy?.name && <span>by {ann.createdBy.name}</span>}
-                                                    {ann.expiresAt && <span>Expires: {new Date(ann.expiresAt).toLocaleDateString('en-IN')}</span>}
+                                                <p className="text-xs text-slate-600 leading-relaxed mb-3">{ann.body}</p>
+                                                <div className="flex items-center gap-4 text-[11px] font-mono text-slate-400">
+                                                    <span className="flex items-center gap-1"><Clock size={11} /> {timeAgo(ann.createdAt)}</span>
+                                                    {ann.createdBy?.name && <span>By {ann.createdBy.name}</span>}
+                                                    {ann.expiresAt && <span>Valid until: {new Date(ann.expiresAt).toLocaleDateString('en-IN')}</span>}
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))}
                             </div>
                         )}

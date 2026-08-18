@@ -3,36 +3,40 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SuspenseLoader from '../components/SuspenseLoader';
 
-// Lazy load feature components
 const ProfileSummary = lazy(() => import('../features/profile/components/ProfileSummary'));
 const UserIssuesList = lazy(() => import('../features/profile/components/UserIssuesList'));
 
 export default function CitizenProfile() {
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-[#F8FAFC] pb-20 font-sans">
             {/* Header */}
-            <div className="bg-white shadow-sm border-b border-gray-100">
-                <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <Link to="/dashboard" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors py-1 px-3 rounded-md hover:bg-gray-50 mono text-xs uppercase tracking-tighter">
-                        <ArrowLeft size={14} />
-                        Return to Dash
+            <div className="bg-white border-b border-slate-200/90 shadow-sm">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                    <Link
+                        to="/dashboard"
+                        className="inline-flex items-center gap-2 text-slate-600 hover:text-orange-600 transition-colors text-xs font-bold uppercase tracking-wider"
+                    >
+                        <ArrowLeft size={15} />
+                        <span>Return to Dashboard</span>
                     </Link>
-                    <h1 className="text-sm font-bold text-gray-900 mono uppercase tracking-widest">Citizen_Profile_V1</h1>
-                    <div className="w-24"></div>
+                    <h1 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest">
+                        CITIZEN PROFILE PORTAL
+                    </h1>
+                    <div className="w-20" />
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-8">
-                <div className="grid lg:grid-cols-3 gap-8">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-6xl">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Profile Summary Section */}
-                    <div className="lg:col-span-1">
+                    <div className="lg:col-span-4">
                         <SuspenseLoader>
                             <ProfileSummary />
                         </SuspenseLoader>
                     </div>
 
                     {/* Reported Issues Section */}
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-8">
                         <SuspenseLoader>
                             <UserIssuesList />
                         </SuspenseLoader>

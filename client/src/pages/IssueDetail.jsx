@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef, useContext } from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
@@ -153,13 +153,14 @@ export default function IssueDetail() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 transition-colors mb-5 mono text-[11px] tracking-widest"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-orange-600 transition-colors mb-6 text-xs font-bold uppercase tracking-wider cursor-pointer"
         >
-          <ArrowLeft size={13} /> BACK
+          <ArrowLeft size={15} />
+          <span>Back to Issues</span>
         </button>
 
         {toast.msg && (

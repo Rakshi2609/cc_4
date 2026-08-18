@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import IssueMap from '../components/IssueMap';
@@ -44,9 +44,9 @@ function NavItem({ icon: Icon, label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors text-left ${active
-        ? 'bg-blue-600 text-white'
-        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${active
+        ? 'bg-[#ea580c] text-white shadow-md shadow-orange-500/25'
+        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
         }`}
     >
       <Icon size={15} />
@@ -632,17 +632,17 @@ export default function GovernmentDashboard() {
   const views = { overview: OverviewView, reports: ReportsView, map: MapView, alerts: AlertsView, analytics: AnalyticsView };
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-[#F8FAFC] font-sans overflow-hidden">
 
       {/* ── Fixed left sidebar ──────────────────────── */}
-      <aside className="w-56 flex-shrink-0 h-screen flex flex-col bg-gray-50 border-r border-gray-200">
-        <div className="px-4 py-4 border-b border-gray-200 flex items-center gap-2">
-          <div className="w-7 h-7 bg-blue-600 rounded-sm flex items-center justify-center">
-            <Shield size={14} className="text-white" />
+      <aside className="w-60 flex-shrink-0 h-screen flex flex-col bg-white border-r border-slate-200/90">
+        <div className="px-4 py-4 border-b border-slate-100 flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-gradient-to-tr from-[#ea580c] to-[#f97316] rounded-xl flex items-center justify-center shadow-md shadow-orange-500/25">
+            <Shield size={16} className="text-white" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-900 leading-none">CivicPlus</p>
-            <p className="mono text-[9px] text-gray-400 tracking-widest mt-0.5">GOV PORTAL</p>
+            <p className="text-sm font-extrabold text-[#0F172A] leading-none">CIVIC<span className="text-orange-600">PLUS</span></p>
+            <p className="text-[10px] font-mono text-slate-400 font-bold uppercase tracking-widest mt-1">COMMAND HUB</p>
           </div>
         </div>
 

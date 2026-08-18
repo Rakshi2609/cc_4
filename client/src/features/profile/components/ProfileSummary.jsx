@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useAuth } from '../../../context/AuthContext';
-import { Mail, Phone, MapPin, Edit2, LogOut } from 'lucide-react';
+import { Mail, Phone, MapPin, Edit2, LogOut, Shield, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { profileApi } from '../api/profileApi';
@@ -25,52 +25,49 @@ export const ProfileSummary = () => {
     }, [logout, navigate]);
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8">
             <div className="text-center mb-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
+                <div className="w-20 h-20 bg-gradient-to-tr from-[#ea580c] to-[#f97316] rounded-2xl flex items-center justify-center mx-auto mb-4 text-white text-2xl font-black shadow-lg shadow-orange-500/25">
                     {user?.name?.charAt(0).toUpperCase()}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">{profile?.name || user?.name}</h2>
-                <p className="text-gray-600 text-sm mt-1">Citizen Account</p>
+                <h2 className="text-xl font-extrabold text-[#0F172A]">{profile?.name || user?.name}</h2>
+                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase mt-2">
+                    <Shield size={11} />
+                    <span>Verified Citizen</span>
+                </div>
             </div>
 
-            <div className="space-y-4 mb-6">
-                <div className="flex items-center gap-3 text-gray-700">
-                    <Mail size={18} className="text-blue-600" />
-                    <span className="text-sm">{profile?.email || user?.email}</span>
+            <div className="space-y-3 mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                <div className="flex items-center gap-2.5 text-slate-700">
+                    <Mail size={15} className="text-orange-600 flex-shrink-0" />
+                    <span className="truncate">{profile?.email || user?.email}</span>
                 </div>
                 {profile?.phone && (
-                    <div className="flex items-center gap-3 text-gray-700">
-                        <Phone size={18} className="text-blue-600" />
-                        <span className="text-sm">{profile.phone}</span>
+                    <div className="flex items-center gap-2.5 text-slate-700">
+                        <Phone size={15} className="text-orange-600 flex-shrink-0" />
+                        <span>{profile.phone}</span>
                     </div>
                 )}
                 {profile?.location && (
-                    <div className="flex items-center gap-3 text-gray-700">
-                        <MapPin size={18} className="text-blue-600" />
-                        <span className="text-sm">{profile.location}</span>
+                    <div className="flex items-center gap-2.5 text-slate-700">
+                        <MapPin size={15} className="text-orange-600 flex-shrink-0" />
+                        <span>{profile.location}</span>
                     </div>
                 )}
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600">{issues?.length || 0}</div>
-                    <div className="text-sm text-gray-600">Issues Reported</div>
-                </div>
+            <div className="bg-orange-50/70 border border-orange-200/80 rounded-2xl p-4 mb-6 text-center">
+                <div className="text-3xl font-extrabold font-mono text-orange-600">{issues?.length || 0}</div>
+                <div className="text-xs font-bold text-slate-600 uppercase tracking-wider mt-0.5">Issues Submitted</div>
             </div>
 
-            <div className="space-y-2">
-                <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    <Edit2 size={18} />
-                    Edit Profile
-                </button>
+            <div className="space-y-2.5">
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
-                    <LogOut size={18} />
-                    Logout
+                    <LogOut size={15} />
+                    <span>Sign Out</span>
                 </button>
             </div>
         </div>
