@@ -658,22 +658,28 @@ export const resolveIssue = async (req, res) => {
         // Notify each member's citizen via socket
         const memberIssues = await Issue.find({ _id: { $in: issue.clusterMembers } });
         for (const member of memberIssues) {
-          req.io?.to(member.citizen.toString()).emit('issue_updated', {
-            issueId: member._id,
-            status: 'resolved',
-            remark: '[Cluster Resolved] ' + aiResolutionNote,
-            clusterUpdate: true,
-          });
+          const memberCitizenId = member.citizen?._id ? member.citizen._id.toString() : member.citizen?.toString();
+          if (memberCitizenId) {
+            req.io?.to(memberCitizenId).emit('issue_updated', {
+              issueId: member._id,
+              status: 'resolved',
+              remark: '[Cluster Resolved] ' + aiResolutionNote,
+              clusterUpdate: true,
+            });
+          }
         }
       }
       // ──────────────────────────────────────────────────────────
 
       // Notify primary issue's citizen
-      req.io?.to(issue.citizen.toString()).emit('issue_updated', {
-        issueId: issue._id,
-        status: 'resolved',
-        remark: aiResolutionNote || 'Issue resolved.',
-      });
+      const citizenId = issue.citizen?._id ? issue.citizen._id.toString() : issue.citizen?.toString();
+      if (citizenId) {
+        req.io?.to(citizenId).emit('issue_updated', {
+          issueId: issue._id,
+          status: 'resolved',
+          remark: aiResolutionNote || 'Issue resolved.',
+        });
+      }
 
       return res.json(issue);
     } else {

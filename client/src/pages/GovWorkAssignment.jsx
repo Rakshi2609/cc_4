@@ -4,7 +4,7 @@ import {
     Users, Target, ClipboardList, CheckCircle2,
     Clock, AlertCircle, ChevronRight, Upload,
     MapPin, User, ArrowRight, ShieldCheck,
-    Briefcase, Activity, Sparkles, RefreshCw, Check
+    Briefcase, Activity, Sparkles, RefreshCw, Check, X, Image as ImageIcon, Camera
 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 
@@ -23,11 +23,12 @@ export default function GovWorkAssignment() {
     const [assigning, setAssigning] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [afterImage, setAfterImage] = useState(null);
+    const [afterPreview, setAfterPreview] = useState(null);
     const [notification, setNotification] = useState(null);
 
     const showToast = (msg, type = 'success') => {
         setNotification({ msg, type });
-        setTimeout(() => setNotification(null), 4000);
+        setTimeout(() => setNotification(null), 5000);
     };
 
     useEffect(() => {
@@ -45,7 +46,6 @@ export default function GovWorkAssignment() {
             setIssues(fetchedIssues);
             
             let fetchedWorkers = workerRes.data || [];
-            // Fallback list of default municipal squads if no other users are registered yet
             if (fetchedWorkers.length === 0) {
                 fetchedWorkers = [
                     { _id: 'squad-roads-1', name: 'BBMP Ward 12 Road Repair Squad', email: 'roads.squad1@bbmp.gov.in', role: 'government' },
@@ -56,7 +56,6 @@ export default function GovWorkAssignment() {
             }
             setWorkers(fetchedWorkers);
 
-            // Keep selected issue synced if open
             if (selectedIssue) {
                 const refreshed = fetchedIssues.find(i => i._id === selectedIssue._id);
                 if (refreshed) setSelectedIssue(refreshed);
@@ -68,6 +67,22 @@ export default function GovWorkAssignment() {
         }
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAfterImage(file);
+            setAfterPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const removeSelectedPhoto = () => {
+        setAfterImage(null);
+        if (afterPreview) {
+            URL.revokeObjectURL(afterPreview);
+            setAfterPreview(null);
+        }
+    };
+
     const handleAssign = async () => {
         if (!selectedIssue || !selectedWorker) return;
         setAssigning(true);
@@ -76,7 +91,6 @@ export default function GovWorkAssignment() {
             showToast('Squad assigned successfully! AI repair plan generated.');
             setSelectedWorker('');
             
-            // Immediately update selected issue with response
             if (res.data) {
                 setSelectedIssue(res.data);
             }
@@ -91,21 +105,27 @@ export default function GovWorkAssignment() {
     };
 
     const handleResolve = async (issueId) => {
-        if (!afterImage) return;
+        if (!afterImage) {
+            showToast('Please select a resolution photo proof first.', 'error');
+            return;
+        }
         setUploading(true);
         const formData = new FormData();
         formData.append('image', afterImage);
 
         try {
-            const res = await api.post(`/issues/${issueId}/resolve`, formData);
-            showToast('Issue marked as resolved and verified!');
-            setAfterImage(null);
-            if (res.data?.issue) {
-                setSelectedIssue(res.data.issue);
+            const res = await api.post(`/issues/${issueId}/resolve`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            showToast('Resolution proof uploaded! Ticket marked as resolved.');
+            removeSelectedPhoto();
+            if (res.data) {
+                setSelectedIssue(res.data);
             }
             fetchData();
         } catch (err) {
-            const msg = err.response?.data?.message || 'Resolution upload failed';
+            console.error('Resolution upload error:', err);
+            const msg = err.response?.data?.message || 'Resolution upload failed. Please try again.';
             showToast(msg, 'error');
         } finally {
             setUploading(false);
@@ -124,12 +144,12 @@ export default function GovWorkAssignment() {
         <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans relative">
             {/* Toast Notification */}
             {notification && (
-                <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-xl border flex items-center gap-2.5 text-xs font-bold transition-all ${
+                <div className={`fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-xl border flex items-center gap-3 text-xs font-bold transition-all animate-bounce ${
                     notification.type === 'error'
-                        ? 'bg-rose-50 text-rose-800 border-rose-200'
-                        : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        ? 'bg-rose-50 text-rose-800 border-rose-200 shadow-rose-500/10'
+                        : 'bg-emerald-50 text-emerald-800 border-emerald-200 shadow-emerald-500/10'
                 }`}>
-                    {notification.type === 'error' ? <AlertCircle size={16} className="text-rose-600" /> : <Check size={16} className="text-emerald-600" />}
+                    {notification.type === 'error' ? <AlertCircle size={18} className="text-rose-600 flex-shrink-0" /> : <Check size={18} className="text-emerald-600 flex-shrink-0" />}
                     <span>{notification.msg}</span>
                 </div>
             )}
@@ -142,7 +162,7 @@ export default function GovWorkAssignment() {
                     </div>
                     <div>
                         <h1 className="text-lg font-extrabold text-[#0F172A] tracking-tight">Municipal Work Assignment</h1>
-                        <p className="text-xs text-slate-500">Field Squad Dispatch &amp; AI Repair Verification</p>
+                        <p className="text-xs text-slate-500">Field Squad Dispatch &amp; AI Resolution Verification</p>
                     </div>
                 </div>
 
@@ -223,6 +243,9 @@ export default function GovWorkAssignment() {
                                                     <ShieldCheck size={11} /> MISTRAL AI VERIFIED
                                                 </span>
                                             )}
+                                            <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-full uppercase">
+                                                Status: {selectedIssue.status}
+                                            </span>
                                         </div>
                                         <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F172A] tracking-tight">{selectedIssue.title}</h2>
                                         <p className="text-slate-600 text-xs sm:text-sm mt-1.5 leading-relaxed">{selectedIssue.description}</p>
@@ -257,16 +280,16 @@ export default function GovWorkAssignment() {
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <p className="text-xs text-slate-400 italic">No AI work plan generated yet. Assign a worker to trigger analysis.</p>
+                                                <p className="text-xs text-slate-400 italic">Assign a municipal squad to view the tailored AI repair strategy.</p>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-6 space-y-6">
-                                    {/* Worker Assignment Controls (Always available for assignment / reassignment) */}
+                                    {/* Worker Assignment Controls */}
                                     <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center justify-between flex-wrap gap-2">
                                             <div className="flex items-center gap-2">
                                                 <User size={16} className="text-orange-600" />
                                                 <span className="text-xs font-bold uppercase tracking-wider text-[#0F172A]">
@@ -301,54 +324,84 @@ export default function GovWorkAssignment() {
                                         </div>
                                     </div>
 
-                                    {/* Resolution Status & Proof Upload */}
-                                    {selectedIssue.status === 'in-progress' && (
-                                        <div className="space-y-4 pt-2 border-t border-slate-100">
-                                            <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl">
-                                                <div className="flex items-center gap-2 text-amber-800 mb-1">
-                                                    <Clock size={16} />
-                                                    <span className="text-xs font-bold uppercase">Work In Progress</span>
+                                    {/* Resolution Proof Upload Section (Active whenever issue is not resolved) */}
+                                    {selectedIssue.status !== 'resolved' ? (
+                                        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Camera size={18} className="text-emerald-600" />
+                                                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0F172A]">Upload Resolution Proof &amp; Close Ticket</h3>
                                                 </div>
-                                                <p className="text-xs text-amber-700">Assigned crew: <span className="font-bold underline">{workers.find(w => w._id === selectedIssue.assignedTo)?.name || 'Field Squad'}</span></p>
+                                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                                    AI Verified Verification
+                                                </span>
                                             </div>
 
-                                            <div className="pt-2">
-                                                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Upload Resolution Proof</p>
-                                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                            {afterPreview ? (
+                                                <div className="relative rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 p-2">
+                                                    <img src={afterPreview} alt="Resolution Preview" className="w-full h-52 object-cover rounded-xl" />
+                                                    <button
+                                                        onClick={removeSelectedPhoto}
+                                                        className="absolute top-4 right-4 p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-colors cursor-pointer"
+                                                        title="Remove photo"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                    <p className="text-[11px] font-medium text-slate-600 mt-2 px-1">Selected: {afterImage?.name}</p>
+                                                </div>
+                                            ) : (
+                                                <div>
                                                     <input
                                                         type="file"
-                                                        id="after-upload"
-                                                        onChange={(e) => setAfterImage(e.target.files[0])}
+                                                        id="resolution-file"
+                                                        accept="image/*"
+                                                        onChange={handleFileChange}
                                                         className="hidden"
                                                     />
                                                     <label
-                                                        htmlFor="after-upload"
-                                                        className="w-full sm:flex-1 border-2 border-dashed border-slate-300 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 transition-all group"
+                                                        htmlFor="resolution-file"
+                                                        className="border-2 border-dashed border-slate-300 hover:border-orange-500 bg-slate-50/60 hover:bg-orange-50/30 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all group"
                                                     >
-                                                        <Upload size={22} className="text-slate-400 group-hover:text-orange-600 mb-1" />
-                                                        <span className="text-xs text-slate-600 font-bold uppercase">{afterImage ? afterImage.name : 'Choose Resolution Photo'}</span>
+                                                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-orange-600 group-hover:scale-110 transition-all mb-2">
+                                                            <Upload size={22} />
+                                                        </div>
+                                                        <p className="text-xs font-bold text-slate-700 group-hover:text-orange-700">Click to capture or upload after-repair photo</p>
+                                                        <p className="text-[10px] text-slate-400 mt-1">Supports JPG, PNG, WebP up to 5MB</p>
                                                     </label>
-                                                    <button
-                                                        onClick={() => handleResolve(selectedIssue._id)}
-                                                        disabled={!afterImage || uploading}
-                                                        className="w-full sm:w-auto px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl disabled:opacity-50 transition-all shadow-lg shadow-emerald-600/25 cursor-pointer"
-                                                    >
-                                                        {uploading ? 'Processing...' : 'Complete & Close Ticket'}
-                                                    </button>
                                                 </div>
+                                            )}
+
+                                            <div className="flex justify-end pt-2">
+                                                <button
+                                                    onClick={() => handleResolve(selectedIssue._id)}
+                                                    disabled={!afterImage || uploading}
+                                                    className="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl disabled:opacity-50 transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                                                >
+                                                    {uploading ? (
+                                                        <>
+                                                            <RefreshCw size={14} className="animate-spin" />
+                                                            <span>Verifying &amp; Uploading...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <CheckCircle2 size={16} />
+                                                            <span>Submit Resolution Proof</span>
+                                                        </>
+                                                    )}
+                                                </button>
                                             </div>
                                         </div>
-                                    )}
-
-                                    {selectedIssue.status === 'resolved' && (
-                                        <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl text-center">
-                                            <CheckCircle2 size={40} className="text-emerald-600 mx-auto mb-2" />
-                                            <h4 className="text-lg font-bold text-emerald-800">Issue Successfully Resolved</h4>
-                                            <p className="text-xs text-emerald-700 mt-1">Verified by AI Quality Control Engine &bull; {selectedIssue.governmentRemarks || 'Resolution confirmed.'}</p>
+                                    ) : (
+                                        <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl text-center space-y-3">
+                                            <CheckCircle2 size={44} className="text-emerald-600 mx-auto" />
+                                            <h4 className="text-lg font-extrabold text-emerald-800">Issue Successfully Resolved &amp; Verified</h4>
+                                            <p className="text-xs text-emerald-700 max-w-md mx-auto leading-relaxed">
+                                                {selectedIssue.governmentRemarks || 'AI quality control comparison and municipal repair confirmation recorded.'}
+                                            </p>
                                             {selectedIssue.resolutionPhotoUrl && (
                                                 <div className="mt-4 max-w-sm mx-auto">
-                                                    <img src={imgUrl(selectedIssue.resolutionPhotoUrl)} alt="Resolved" className="w-full h-40 object-cover rounded-xl border border-emerald-200" />
-                                                    <p className="text-[10px] text-emerald-600 font-mono mt-1">Resolution Evidence</p>
+                                                    <img src={imgUrl(selectedIssue.resolutionPhotoUrl)} alt="Resolved Proof" className="w-full h-44 object-cover rounded-2xl border border-emerald-200 shadow-sm" />
+                                                    <p className="text-[10px] text-emerald-700 font-mono font-bold mt-1.5 uppercase">Verified Resolution Proof</p>
                                                 </div>
                                             )}
                                         </div>
@@ -362,7 +415,7 @@ export default function GovWorkAssignment() {
                                 <Target size={28} />
                             </div>
                             <h3 className="text-base font-bold text-[#0F172A]">Select a ticket from the left queue</h3>
-                            <p className="text-xs text-slate-500 mt-1">Assign maintenance squads and review AI work plans</p>
+                            <p className="text-xs text-slate-500 mt-1">Assign maintenance squads, review AI work plans, and upload resolution proof</p>
                         </div>
                     )}
                 </div>
