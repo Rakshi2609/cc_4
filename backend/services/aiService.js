@@ -3,9 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 
-const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api.featherless.ai/v1';
-const LLM_MODEL = process.env.LLM_MODEL || 'google/gemma-3-27b-it';
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || process.env.LLM_API_KEY;
+const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://api.mistral.ai/v1';
+const LLM_MODEL = process.env.LLM_MODEL || 'pixtral-12b-2409';
 
 const VALID_CATEGORIES = ['Pothole', 'Streetlight', 'Garbage', 'Drainage', 'Water Leakage', 'Others'];
 
@@ -33,18 +33,41 @@ async function imageToBase64DataUrl(imageSource) {
 }
 
 /**
- * Sends the citizen-uploaded image to Featherless.ai (vision model) and:
+ * Helper to safely extract and parse JSON from LLM text response.
+ */
+function parseJsonResponse(rawText, fallback = {}) {
+  if (!rawText || typeof rawText !== 'string') return fallback;
+  try {
+    const cleaned = rawText.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    // Attempt regex extraction for JSON objects or arrays
+    const jsonMatch = rawText.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (subErr) {
+        // failed fallback
+      }
+    }
+    console.warn('[aiService] JSON parsing failed for response:', rawText);
+    return fallback;
+  }
+}
+
+/**
+ * Sends the citizen-uploaded image to Mistral Vision (Pixtral) and:
  *  1. Classifies which civic-issue category the image belongs to.
  *  2. Verifies whether it is a genuine real-world civic problem photo.
  *
- * @param {string} imageFilePath  - Relative path returned by multer (e.g. /uploads/issues/xxx.jpg)
+ * @param {string} imageFilePath  - Image URL or local relative path (e.g. /uploads/issues/xxx.jpg)
  * @param {string} userCategory   - The category the citizen chose in the form
  * @returns {{ detectedCategory: string, aiVerified: boolean, confidence: number, aiNote: string }}
  */
 export async function classifyIssueImage(imageFilePath, userCategory = '') {
-  if (!LLM_API_KEY) {
-    console.warn('[aiService] LLM_API_KEY not set — skipping AI classification.');
-    return { detectedCategory: userCategory, aiVerified: false, confidence: 0, aiNote: 'AI key not configured.' };
+  if (!MISTRAL_API_KEY) {
+    console.warn('[aiService] MISTRAL_API_KEY / LLM_API_KEY not set — skipping AI classification.');
+    return { detectedCategory: userCategory || 'Others', aiVerified: false, confidence: 0, aiNote: 'AI key not configured.' };
   }
 
   let dataUrl;
@@ -52,7 +75,7 @@ export async function classifyIssueImage(imageFilePath, userCategory = '') {
     dataUrl = await imageToBase64DataUrl(imageFilePath);
   } catch (err) {
     console.warn('[aiService] Could not read image file:', err.message);
-    return { detectedCategory: userCategory, aiVerified: false, confidence: 0, aiNote: 'Image file unreadable.' };
+    return { detectedCategory: userCategory || 'Others', aiVerified: false, confidence: 0, aiNote: 'Image file unreadable.' };
   }
 
   const systemPrompt =
@@ -80,26 +103,32 @@ Categories:
 The citizen selected: "${userCategory || 'not specified'}"`;
 
   try {
+    const payload = {
+      model: LLM_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        {
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: dataUrl } },
+            { type: 'text', text: userPrompt },
+          ],
+        },
+      ],
+      max_tokens: 300,
+      temperature: 0.1,
+    };
+
+    if (LLM_BASE_URL.includes('mistral.ai')) {
+      payload.response_format = { type: 'json_object' };
+    }
+
     const response = await axios.post(
       `${LLM_BASE_URL}/chat/completions`,
-      {
-        model: LLM_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'image_url', image_url: { url: dataUrl } },
-              { type: 'text', text: userPrompt },
-            ],
-          },
-        ],
-        max_tokens: 200,
-        temperature: 0.1,
-      },
+      payload,
       {
         headers: {
-          Authorization: `Bearer ${LLM_API_KEY}`,
+          Authorization: `Bearer ${MISTRAL_API_KEY}`,
           'Content-Type': 'application/json',
         },
         timeout: 30000,
@@ -107,10 +136,7 @@ The citizen selected: "${userCategory || 'not specified'}"`;
     );
 
     const raw = response.data?.choices?.[0]?.message?.content || '';
-
-    // Strip markdown code fences if the model wraps the JSON
-    const cleaned = raw.replace(/```json|```/gi, '').trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = parseJsonResponse(raw, {});
 
     const detectedCategory = VALID_CATEGORIES.includes(parsed.detectedCategory)
       ? parsed.detectedCategory
@@ -124,7 +150,7 @@ The citizen selected: "${userCategory || 'not specified'}"`;
     };
   } catch (err) {
     const msg = err.response?.data?.error?.message || err.message;
-    console.error('[aiService] Classification failed:', msg);
+    console.error('[aiService] Mistral classification failed:', msg);
     return {
       detectedCategory: userCategory || 'Others',
       aiVerified: false,
@@ -138,7 +164,7 @@ The citizen selected: "${userCategory || 'not specified'}"`;
  * Generates an AI-driven work plan (list of steps) for a specific civic issue based on its image.
  */
 export async function generateWorkPlan(imageFilePath, category) {
-  if (!LLM_API_KEY) return ['Assess the site', 'Secure the area', 'Perform repairs', 'Document completion'];
+  if (!MISTRAL_API_KEY) return ['Assess the site', 'Secure the area', 'Perform repairs', 'Document completion'];
 
   let dataUrl;
   try {
@@ -147,7 +173,7 @@ export async function generateWorkPlan(imageFilePath, category) {
     return ['Unable to analyze image for custom plan. Follow standard operating procedures.'];
   }
 
-  const prompt = `Based on this photo of a ${category} issue, provide a concise 4-step technical work plan to fix it. Return ONLY a JSON array of strings.`;
+  const prompt = `Based on this photo of a ${category} issue, provide a concise 4-step technical work plan to fix it. Return ONLY a JSON array of strings, e.g. ["Step 1", "Step 2", "Step 3", "Step 4"].`;
 
   try {
     const response = await axios.post(`${LLM_BASE_URL}/chat/completions`, {
@@ -162,14 +188,21 @@ export async function generateWorkPlan(imageFilePath, category) {
           ],
         },
       ],
-      max_tokens: 300,
+      max_tokens: 350,
+      temperature: 0.2,
     }, {
-      headers: { Authorization: `Bearer ${LLM_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${MISTRAL_API_KEY}`, 'Content-Type': 'application/json' },
+      timeout: 30000,
     });
 
     const raw = response.data?.choices?.[0]?.message?.content || '[]';
-    return JSON.parse(raw.replace(/```json|```/gi, '').trim());
+    const parsed = parseJsonResponse(raw, []);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+    return ['Inspect damage', 'Procure materials', 'Execute repair', 'Final inspection'];
   } catch (err) {
+    console.error('[aiService] Mistral generateWorkPlan error:', err.response?.data?.error?.message || err.message);
     return ['Inspect damage', 'Procure materials', 'Execute repair', 'Final inspection'];
   }
 }
@@ -178,7 +211,7 @@ export async function generateWorkPlan(imageFilePath, category) {
  * Verifies if a resolution photo actually shows the problem fixed compared to the original photo.
  */
 export async function verifyResolution(originalImagePath, resolutionImagePath, category) {
-  if (!LLM_API_KEY) return { isResolved: true, note: 'AI verification skipped.' };
+  if (!MISTRAL_API_KEY) return { isResolved: true, note: 'AI verification skipped.' };
 
   try {
     const beforeUrl = await imageToBase64DataUrl(originalImagePath);
@@ -186,7 +219,7 @@ export async function verifyResolution(originalImagePath, resolutionImagePath, c
 
     const prompt = `Compare these two images of a ${category} issue (Before and After). Determine if the issue is resolved. Respond in JSON: {"isResolved": boolean, "note": "one sentence explanation"}`;
 
-    const response = await axios.post(`${LLM_BASE_URL}/chat/completions`, {
+    const payload = {
       model: LLM_MODEL,
       messages: [
         { role: 'system', content: 'You are a quality control inspector. Respond ONLY with JSON.' },
@@ -199,14 +232,27 @@ export async function verifyResolution(originalImagePath, resolutionImagePath, c
           ],
         },
       ],
-      max_tokens: 200,
-    }, {
-      headers: { Authorization: `Bearer ${LLM_API_KEY}`, 'Content-Type': 'application/json' },
+      max_tokens: 250,
+      temperature: 0.1,
+    };
+
+    if (LLM_BASE_URL.includes('mistral.ai')) {
+      payload.response_format = { type: 'json_object' };
+    }
+
+    const response = await axios.post(`${LLM_BASE_URL}/chat/completions`, payload, {
+      headers: { Authorization: `Bearer ${MISTRAL_API_KEY}`, 'Content-Type': 'application/json' },
+      timeout: 30000,
     });
 
     const raw = response.data?.choices?.[0]?.message?.content || '{}';
-    return JSON.parse(raw.replace(/```json|```/gi, '').trim());
+    const parsed = parseJsonResponse(raw, { isResolved: true, note: 'AI comparison parsed fallback.' });
+    return {
+      isResolved: typeof parsed.isResolved === 'boolean' ? parsed.isResolved : true,
+      note: parsed.note || 'AI verified resolution status.',
+    };
   } catch (err) {
+    console.error('[aiService] Mistral verifyResolution error:', err.response?.data?.error?.message || err.message);
     return { isResolved: true, note: 'AI comparison failed, defaulting to trust.' };
   }
 }

@@ -339,9 +339,9 @@ Create this file at `backend/.env` before starting the server. All variables mar
 | `CLOUDINARY_CLOUD_NAME` | ✅ Required for uploads | _(none)_                              | Your Cloudinary cloud name. Find it on the [Cloudinary Dashboard](https://cloudinary.com/console).                                              |
 | `CLOUDINARY_API_KEY`    | ✅ Required for uploads | _(none)_                              | Cloudinary API key (numeric string).                                                                                                            |
 | `CLOUDINARY_API_SECRET` | ✅ Required for uploads | _(none)_                              | Cloudinary API secret. **Never expose this to the client.**                                                                                     |
-| `LLM_API_KEY`           | Optional                | _(none)_                              | API key for the LLM provider used by the AI decision service (`aiService.js`). Required for AI issue categorisation and budget recommendations. |
-| `LLM_BASE_URL`          | Optional                | `https://api.featherless.ai/v1`       | Base URL of the OpenAI-compatible LLM API endpoint. Override to use a different provider.                                                       |
-| `LLM_MODEL`             | Optional                | `google/gemma-3-27b-it`               | Model identifier passed to the LLM API. Change to any model supported by your provider.                                                         |
+| `MISTRAL_API_KEY` / `LLM_API_KEY` | Optional                | _(none)_                              | API key for Mistral AI used by the AI vision service (`aiService.js`). Required for AI issue categorization, work planning, and resolution verification. |
+| `LLM_BASE_URL`          | Optional                | `https://api.mistral.ai/v1`           | Base URL of the OpenAI-compatible Mistral API endpoint. Override to use a different provider.                                                    |
+| `LLM_MODEL`             | Optional                | `pixtral-12b-2409`                     | Mistral Vision model identifier (e.g. `pixtral-12b-2409` or `pixtral-large-latest`).                                                              |
 
 **Full `backend/.env` template:**
 
@@ -362,10 +362,10 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-# ── AI / LLM (optional) ──────────────────────────────────────
-LLM_API_KEY=your_llm_api_key
-LLM_BASE_URL=https://api.featherless.ai/v1
-LLM_MODEL=google/gemma-3-27b-it
+# ── Mistral AI / Vision (Pixtral) ────────────────────────────
+MISTRAL_API_KEY=your_mistral_api_key
+LLM_BASE_URL=https://api.mistral.ai/v1
+LLM_MODEL=pixtral-12b-2409
 ```
 
 ### `client/.env` — Frontend Variables

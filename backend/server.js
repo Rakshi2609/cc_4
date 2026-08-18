@@ -29,11 +29,27 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const httpServer = createServer(app);
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'https://cc-4-omega.vercel.app',
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(s => s.trim()) : [])
+];
+
+const corsOriginHandler = (origin, callback) => {
+  if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.startsWith('http://localhost:')) {
+    return callback(null, true);
+  }
+  return callback(null, true);
+};
+
 // ── Socket.IO ──────────────────────────────────────────────────────────────
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173' || 'http://localhost:5174',
+    origin: corsOriginHandler,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -93,7 +109,7 @@ app.use((req, _res, next) => {
 });
 
 // ── Middleware ─────────────────────────────────────────────────────────────
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+app.use(cors({ origin: corsOriginHandler, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

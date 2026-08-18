@@ -1,128 +1,294 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Camera, MapPin, Zap, Shield, Bell } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    ArrowRight,
+    Sparkles,
+    ShieldCheck,
+    MapPin,
+    Zap,
+    Cpu,
+    CheckCircle2,
+    Layers,
+    Activity,
+    Scan
+} from 'lucide-react';
 
-const FEATURES = [
-    { label: 'Photo + GPS Report', icon: Camera },
-    { label: 'AI Vision Verify', icon: Zap },
-    { label: 'Geo-Cluster Hotspots', icon: MapPin },
-    { label: 'Real-Time Alerts', icon: Bell },
-    { label: 'Resolution Audit Trail', icon: Shield },
-];
-
-const STEPS = [
-    { num: '01', title: 'Snap & Submit', desc: 'Photograph the issue. GPS auto-tags the location. AI verifies category in seconds.' },
-    { num: '02', title: 'Smart Clustering', desc: 'Duplicate reports within 100 m merge into a priority hotspot automatically.' },
-    { num: '03', title: 'Gov Dispatch', desc: 'Government assigns a crew. AI generates a 4-step maintenance strategy on-the-fly.' },
-    { num: '04', title: 'Verified Resolved', desc: 'Before/after AI photo comparison confirms the fix. Status history locked with SHA-256.' },
+const LIVE_DEMO_ISSUES = [
+    {
+        title: 'Deep Road Crater & Asphalt Breach',
+        category: 'Pothole',
+        dept: 'Roads & Infrastructure',
+        confidence: '99.2%',
+        severity: 85,
+        lat: '12.9716° N',
+        lng: '77.5946° E',
+        status: 'Auto-Routed to Ward 14 Crew',
+        color: '#f97316',
+        bg: 'rgba(249, 115, 22, 0.12)',
+        borderColor: 'rgba(249, 115, 22, 0.3)'
+    },
+    {
+        title: 'Main Pipeline Valve Burst',
+        category: 'Water Leakage',
+        dept: 'Water & Sanitation',
+        confidence: '98.7%',
+        severity: 94,
+        lat: '12.9734° N',
+        lng: '77.6012° E',
+        status: 'High Priority Emergency Alert Triggered',
+        color: '#0ea5e9',
+        bg: 'rgba(14, 165, 233, 0.12)',
+        borderColor: 'rgba(14, 165, 233, 0.3)'
+    },
+    {
+        title: 'Uncollected Commercial Waste Dump',
+        category: 'Garbage',
+        dept: 'Solid Waste Management',
+        confidence: '97.5%',
+        severity: 72,
+        lat: '12.9690° N',
+        lng: '77.5890° E',
+        status: 'Geo-Merged into 4-Citizen Hotspot',
+        color: '#10b981',
+        bg: 'rgba(16, 185, 129, 0.12)',
+        borderColor: 'rgba(16, 185, 129, 0.3)'
+    },
+    {
+        title: 'Damaged High-Mast LED Fixture',
+        category: 'Streetlight',
+        dept: 'Electricity Department',
+        confidence: '98.1%',
+        severity: 68,
+        lat: '12.9780° N',
+        lng: '77.6050° E',
+        status: 'Dispatched to Night Patrol Unit',
+        color: '#eab308',
+        bg: 'rgba(234, 179, 8, 0.12)',
+        borderColor: 'rgba(234, 179, 8, 0.3)'
+    }
 ];
 
 export const LandingHero = () => {
-    const [tick, setTick] = useState(0);
+    const [issueIdx, setIssueIdx] = useState(0);
+
     useEffect(() => {
-        const id = setInterval(() => setTick(t => (t + 1) % FEATURES.length), 2200);
-        return () => clearInterval(id);
+        const timer = setInterval(() => {
+            setIssueIdx((prev) => (prev + 1) % LIVE_DEMO_ISSUES.length);
+        }, 3600);
+        return () => clearInterval(timer);
     }, []);
 
-    const ActiveIcon = FEATURES[tick].icon;
+    const activeIssue = LIVE_DEMO_ISSUES[issueIdx];
 
     return (
-        <>
-            {/* ─── HERO ───────────────────────────────────────────────────── */}
-            <section
+        <section className="relative min-h-[92vh] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 pt-28 pb-16 overflow-hidden bg-[#0a0f1d]">
+            {/* Background dynamic grid & ambient glows */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(120,119,198,0.2),rgba(255,255,255,0))] pointer-events-none" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-blue-600/10 blur-[130px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-10 right-10 w-[400px] h-[300px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none" />
+
+            {/* Subtle grid backdrop */}
+            <div
+                className="absolute inset-0 opacity-[0.03] pointer-events-none"
                 style={{
-                    minHeight: '100vh',
-                    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '7rem 1.5rem 5rem',
-                    position: 'relative',
-                    overflow: 'hidden',
+                    backgroundImage: `linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)`,
+                    backgroundSize: '48px 48px'
                 }}
-            >
+            />
 
-
-                {/* Badge */}
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '999px', padding: '6px 16px', marginBottom: '2rem' }}>
-                    <Zap size={13} color="#60a5fa" />
-                    <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.15em', color: '#60a5fa', textTransform: 'uppercase' }}>AI-Powered Civic Intelligence</span>
-                </div>
-
-                {/* Headline */}
-                <h1 style={{ fontSize: 'clamp(1.8rem, 4.5vw, 5rem)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.04em', color: '#f8fafc', textAlign: 'center', maxWidth: '1100px', marginBottom: '1.5rem', whiteSpace: 'nowrap' }}>
-                    Fix Your City —{' '}
-                    <span style={{ background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        Before Tomorrow
+            <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center text-center">
+                {/* 21st.dev Style Floating Pill Badge */}
+                <motion.div
+                    initial={{ opacity: 0, y: -16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/60 shadow-lg shadow-black/20 backdrop-blur-md mb-8"
+                >
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                     </span>
-                </h1>
+                    <span className="text-xs font-semibold text-slate-300 tracking-wide">
+                        Mistral Vision AI &middot; Civic Intelligence v4.0
+                    </span>
+                    <span className="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 rounded-md">
+                        LIVE
+                    </span>
+                </motion.div>
 
-                <p style={{ fontSize: 'clamp(1rem, 2vw, 1.25rem)', color: '#94a3b8', maxWidth: '620px', textAlign: 'center', lineHeight: 1.7, marginBottom: '2.5rem' }}>
-                    Report potholes, broken streetlights, and drainage issues in 30 seconds.
-                    Qwen 120B Vision AI verifies every photo. Government responds faster.
-                </p>
+                {/* Main Hero Headline */}
+                <motion.h1
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+                    className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.08] mb-6 max-w-4xl"
+                >
+                    Turn Citizen Photos into{' '}
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+                        Immediate Civic Action
+                    </span>
+                </motion.h1>
 
-                {/* Animated feature ticker */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '10px 20px', marginBottom: '2.5rem', minWidth: '260px', justifyContent: 'center' }}>
-                    <ActiveIcon size={16} color="#a78bfa" />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e2e8f0', letterSpacing: '0.03em' }}>{FEATURES[tick].label}</span>
-                </div>
+                {/* Subtitle */}
+                <motion.p
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+                    className="text-base sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10"
+                >
+                    Snap an infrastructure issue in 15 seconds. Mistral Pixtral Vision verifies the damage, auto-clusters duplicate reports, and dispatches municipal crews with zero red tape.
+                </motion.p>
 
-                {/* CTA Buttons */}
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '3.5rem' }}>
+                {/* Hero CTAs */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
+                    className="flex flex-wrap items-center justify-center gap-4 mb-14"
+                >
                     <Link
                         to="/register"
-                        style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '8px',
-                            background: 'linear-gradient(90deg, #2563eb, #7c3aed)',
-                            color: '#fff', padding: '14px 32px', borderRadius: '12px',
-                            fontWeight: 700, fontSize: '1rem', textDecoration: 'none',
-                        }}
+                        className="group relative inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-sm sm:text-base shadow-xl shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                     >
-                        Report an Issue <ArrowRight size={18} />
+                        <span>Report an Issue Now</span>
+                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                     </Link>
+
                     <Link
-                        to="/login"
-                        style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '8px',
-                            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
-                            color: '#e2e8f0', padding: '14px 32px', borderRadius: '12px',
-                            fontWeight: 600, fontSize: '1rem', textDecoration: 'none',
-                        }}
+                        to="/city-feed"
+                        className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 text-slate-200 border border-slate-700/80 font-medium text-sm sm:text-base backdrop-blur-sm transition-all duration-200 hover:border-slate-600"
                     >
-                        Government Login
+                        <Activity size={17} className="text-blue-400" />
+                        <span>Explore Live City Feed</span>
                     </Link>
-                </div>
+                </motion.div>
 
-                {/* Trust strip */}
-                <div style={{ display: 'flex', gap: 'clamp(16px,4vw,48px)', flexWrap: 'wrap', justifyContent: 'center' }}>
-                    {['JWT Auth', 'Socket.IO Live', 'Featherless AI', 'MongoDB Atlas', 'Cloudinary CDN'].map(t => (
-                        <span key={t} style={{ fontSize: '0.78rem', fontWeight: 700, color: 'rgba(148,163,184,0.7)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t}</span>
-                    ))}
-                </div>
-            </section>
-
-            {/* ─── HOW IT WORKS ──────────────────────────────────────────── */}
-            <section style={{ background: '#f8fafc', padding: '5rem 1.5rem' }}>
-                <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-                    <p style={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.2em', color: '#3b82f6', textTransform: 'uppercase', marginBottom: '0.75rem' }}>HOW IT WORKS</p>
-                    <h2 style={{ textAlign: 'center', fontSize: 'clamp(1.8rem, 4vw, 2.75rem)', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', marginBottom: '3.5rem' }}>From Report to Resolved — 4 Steps</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1.5rem' }}>
-                        {STEPS.map((s, i) => (
-                            <div key={i} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '2rem', position: 'relative', overflow: 'hidden' }}>
-                                <div style={{ position: 'absolute', top: '-10px', right: '-4px', fontSize: '5rem', fontWeight: 900, color: '#f1f5f9', lineHeight: 1, userSelect: 'none' }}>{s.num}</div>
-                                <div style={{ position: 'relative', zIndex: 1 }}>
-                                    <span style={{ display: 'inline-block', background: '#0f172a', color: '#fff', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', padding: '3px 10px', borderRadius: '999px', marginBottom: '1rem', textTransform: 'uppercase' }}>{s.num}</span>
-                                    <h3 style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem', marginBottom: '0.5rem' }}>{s.title}</h3>
-                                    <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
+                {/* 21st.dev Inspired Interactive Live Vision Inspection Card */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.96, y: 24 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.7, delay: 0.4, ease: 'easeOut' }}
+                    className="w-full max-w-3xl rounded-2xl bg-slate-900/70 border border-slate-800 shadow-2xl shadow-black/60 backdrop-blur-xl p-5 sm:p-6 text-left"
+                >
+                    <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-4">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                                <Scan size={18} />
+                            </div>
+                            <div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                    Mistral Vision Neural Pipeline
+                                </div>
+                                <div className="text-sm font-semibold text-white">
+                                    Live Image Verification Stream
                                 </div>
                             </div>
-                        ))}
+                        </div>
+
+                        <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+                            <CheckCircle2 size={13} />
+                            <span>SHA-256 Audit Ready</span>
+                        </div>
                     </div>
-                </div>
-            </section>
-        </>
+
+                    {/* Animated Content Switcher */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeIssue.title}
+                            initial={{ opacity: 0, x: 12 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -12 }}
+                            transition={{ duration: 0.35, ease: 'easeInOut' }}
+                            className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center"
+                        >
+                            {/* Left Meta */}
+                            <div className="md:col-span-8 space-y-2.5">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span
+                                        className="px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                                        style={{
+                                            color: activeIssue.color,
+                                            backgroundColor: activeIssue.bg,
+                                            borderColor: activeIssue.borderColor
+                                        }}
+                                    >
+                                        {activeIssue.category}
+                                    </span>
+                                    <span className="text-xs font-medium text-slate-400 bg-slate-800/70 px-2.5 py-0.5 rounded-full border border-slate-700/50">
+                                        Dept: {activeIssue.dept}
+                                    </span>
+                                    <span className="text-xs font-mono text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-full">
+                                        Confidence: {activeIssue.confidence}
+                                    </span>
+                                </div>
+
+                                <h3 className="text-base sm:text-lg font-bold text-slate-100">
+                                    {activeIssue.title}
+                                </h3>
+
+                                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                                    <span className="flex items-center gap-1 font-mono text-slate-300">
+                                        <MapPin size={13} className="text-rose-400" />
+                                        {activeIssue.lat}, {activeIssue.lng}
+                                    </span>
+                                    <span className="text-slate-600">&bull;</span>
+                                    <span className="text-emerald-400 font-medium">
+                                        {activeIssue.status}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Right Severity Metric */}
+                            <div className="md:col-span-4 bg-slate-950/60 rounded-xl p-3.5 border border-slate-800/70 flex flex-col justify-center">
+                                <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                                    <span>AI Severity Score</span>
+                                    <span className="font-mono font-bold text-white text-sm">
+                                        {activeIssue.severity}/100
+                                    </span>
+                                </div>
+                                <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${activeIssue.severity}%` }}
+                                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                                        className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-rose-500 rounded-full"
+                                    />
+                                </div>
+                                <div className="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
+                                    <span>Auto-Clustering Radius</span>
+                                    <span className="font-mono text-slate-200">100m Active</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+                </motion.div>
+
+                {/* Trust and Integration Strip */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                    className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-semibold uppercase tracking-wider text-slate-500"
+                >
+                    <span className="flex items-center gap-1.5 hover:text-slate-300 transition-colors">
+                        <Cpu size={14} className="text-blue-400" /> Mistral Pixtral-12B
+                    </span>
+                    <span className="text-slate-700">&bull;</span>
+                    <span className="flex items-center gap-1.5 hover:text-slate-300 transition-colors">
+                        <Layers size={14} className="text-indigo-400" /> GeoJSON Clustering
+                    </span>
+                    <span className="text-slate-700">&bull;</span>
+                    <span className="flex items-center gap-1.5 hover:text-slate-300 transition-colors">
+                        <Zap size={14} className="text-amber-400" /> Socket.IO Realtime
+                    </span>
+                    <span className="text-slate-700">&bull;</span>
+                    <span className="flex items-center gap-1.5 hover:text-slate-300 transition-colors">
+                        <ShieldCheck size={14} className="text-emerald-400" /> Tamper-Proof Audit
+                    </span>
+                </motion.div>
+            </div>
+        </section>
     );
 };
 
